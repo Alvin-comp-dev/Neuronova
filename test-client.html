@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Client Connection</title>
+</head>
+<body>
+    <h1>Testing Server Connection</h1>
+    <div id="test-results"></div>
+    
+    <script>
+        async function testServer() {
+            const results = document.getElementById('test-results');
+            
+            try {
+                // Test homepage
+                const homeResponse = await fetch('/');
+                results.innerHTML += `<p>Homepage: ${homeResponse.status} ${homeResponse.statusText}</p>`;
+                
+                // Test research API
+                const researchResponse = await fetch('/api/research/stats');
+                const researchData = await researchResponse.json();
+                results.innerHTML += `<p>Research API: ${researchResponse.status} - ${researchData.success ? 'Success' : 'Failed'}</p>`;
+                results.innerHTML += `<p>Total Articles: ${researchData.data?.totalPapers || 'N/A'}</p>`;
+                
+                // Test research page
+                const researchPageResponse = await fetch('/research');
+                results.innerHTML += `<p>Research Page: ${researchPageResponse.status} ${researchPageResponse.statusText}</p>`;
+                
+            } catch (error) {
+                results.innerHTML += `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+        
+        testServer();
+    </script>
+</body>
+</html> 

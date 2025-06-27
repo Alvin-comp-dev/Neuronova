@@ -1,0 +1,28 @@
+# *
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /auth/
+Disallow: /admin/
+Disallow: /profile/
+Disallow: /_next/
+Disallow: /static/
+
+# GPTBot
+User-agent: GPTBot
+Disallow: /
+
+# ChatGPT-User
+User-agent: ChatGPT-User
+Disallow: /
+
+# CCBot
+User-agent: CCBot
+Disallow: /
+
+# Host
+Host: https://neuronova.com
+
+# Sitemaps
+Sitemap: https://neuronova.com/sitemap.xml
+Sitemap: https://neuronova.com/server-sitemap.xml

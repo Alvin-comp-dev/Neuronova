@@ -1,0 +1,19 @@
+/* Fix select dropdown contrast in dark mode */
+select {
+  color-scheme: dark;
+}
+
+select option {
+  background-color: #1e293b;
+  color: #ffffff;
+}
+
+.dark select option {
+  background-color: #1e293b;
+  color: #ffffff;
+}
+
+html.light select option {
+  background-color: #ffffff;
+  color: #000000;
+} 

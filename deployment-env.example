@@ -1,0 +1,22 @@
+# Environment Variables for Deployment
+# Copy these values to your hosting platform's environment variables
+
+# === VERCEL ENVIRONMENT VARIABLES ===
+# Set these in your Vercel project settings:
+
+NEXT_PUBLIC_API_URL=https://your-backend.railway.app
+NEXT_TELEMETRY_DISABLED=1
+NEXTAUTH_SECRET=your-secret-key-here
+NEXTAUTH_URL=https://your-app.vercel.app
+
+# === RAILWAY ENVIRONMENT VARIABLES ===
+# Railway will automatically set PORT
+# Add these if you want to use MongoDB:
+
+MONGODB_URI=your-mongodb-connection-string
+NODE_ENV=production
+
+# === DEPLOYMENT URLS ===
+# Update these after deployment:
+# Backend: https://your-backend.railway.app
+# Frontend: https://your-app.vercel.app 

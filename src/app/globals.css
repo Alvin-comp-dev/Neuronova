@@ -1,26 +1,281 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --font-inter: 'Inter', sans-serif;
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+  --card: #1e293b;
+  --card-foreground: #f1f5f9;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --secondary: #475569;
+  --secondary-foreground: #f1f5f9;
+  --muted: #334155;
+  --muted-foreground: #94a3b8;
+  --accent: #1e293b;
+  --accent-foreground: #f1f5f9;
+  --border: #334155;
+  --input: #1e293b;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Force dark mode as default */
+:root {
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+}
+
+/* Light mode (only when explicitly requested) */
+:root.light {
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --primary: #3b82f6;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #f1f5f9;
+  --accent-foreground: #0f172a;
+  --border: #e2e8f0;
+  --input: #ffffff;
+}
+
+html {
+  font-feature-settings: 'cv11', 'ss01';
+  font-variation-settings: 'opsz' 32;
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter);
+  min-height: 100vh;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Custom Components with harmonious dark colors */
+.btn-primary {
+  @apply bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-md font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md;
+}
+
+.btn-secondary {
+  @apply bg-slate-700 hover:bg-slate-600 text-slate-100 px-4 py-2 rounded-md font-medium transition-all duration-200 border border-slate-600;
+}
+
+.btn-outline {
+  @apply border border-slate-600 hover:bg-slate-800 text-slate-300 hover:text-slate-100 px-4 py-2 rounded-md font-medium transition-all duration-200;
+}
+
+.card {
+  @apply bg-slate-800 rounded-lg shadow-lg border border-slate-700 p-6 backdrop-blur-sm;
+}
+
+.input-field {
+  @apply w-full px-3 py-2 border border-slate-600 rounded-md shadow-sm placeholder-slate-400 bg-slate-800 text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200;
+}
+
+.nav-link {
+  @apply text-slate-300 hover:text-blue-400 px-3 py-2 text-sm font-medium transition-colors duration-200;
+}
+
+.gradient-text {
+  @apply bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent;
+}
+
+.section-container {
+  @apply w-full px-4 sm:px-6 lg:px-8;
+}
+
+.section-container-centered {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+/* Improved color palette for dark theme */
+.text-primary {
+  @apply text-blue-400;
+}
+
+.text-secondary {
+  @apply text-slate-300;
+}
+
+.text-muted {
+  @apply text-slate-400;
+}
+
+.bg-primary {
+  @apply bg-blue-600;
+}
+
+.bg-secondary {
+  @apply bg-slate-700;
+}
+
+.bg-card {
+  @apply bg-slate-800;
+}
+
+/* Utilities */
+.text-balance {
+  text-wrap: balance;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Force consistent dark backgrounds */
+.min-h-screen {
+  @apply bg-slate-900;
+}
+
+/* Override problematic color combinations */
+.bg-gray-50 {
+  @apply bg-slate-900;
+}
+
+.bg-white {
+  @apply bg-slate-800;
+}
+
+.text-gray-900 {
+  @apply text-slate-100;
+}
+
+.text-gray-800 {
+  @apply text-slate-200;
+}
+
+.text-gray-700 {
+  @apply text-slate-300;
+}
+
+.text-gray-600 {
+  @apply text-slate-400;
+}
+
+.text-gray-500 {
+  @apply text-slate-500;
+}
+
+.border-gray-200 {
+  @apply border-slate-700;
+}
+
+.border-gray-300 {
+  @apply border-slate-600;
+}
+
+/* Improved stat colors for better contrast */
+.text-blue-600 {
+  @apply text-blue-400;
+}
+
+.text-green-600 {
+  @apply text-emerald-400;
+}
+
+.text-purple-600 {
+  @apply text-purple-400;
+}
+
+.text-orange-600 {
+  @apply text-orange-400;
+}
+
+.text-red-600 {
+  @apply text-red-400;
+}
+
+/* Gradient backgrounds with better contrast */
+.bg-gradient-primary {
+  @apply bg-gradient-to-r from-blue-600 to-purple-600;
+}
+
+.bg-gradient-secondary {
+  @apply bg-gradient-to-r from-slate-700 to-slate-600;
+}
+
+/* Card hover effects */
+.card-hover {
+  @apply transition-all duration-300 hover:shadow-xl hover:border-slate-600;
+}
+
+/* Focus states */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900;
+}
+
+/* Status colors optimized for dark theme */
+.status-success {
+  @apply text-emerald-400 bg-emerald-900/20 border-emerald-700;
+}
+
+.status-warning {
+  @apply text-amber-400 bg-amber-900/20 border-amber-700;
+}
+
+.status-error {
+  @apply text-red-400 bg-red-900/20 border-red-700;
+}
+
+.status-info {
+  @apply text-blue-400 bg-blue-900/20 border-blue-700;
+}
+
+
+/* Fix select dropdown contrast in dark mode */
+select {
+  color-scheme: dark;
+}
+
+select option {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+}
+
+.dark select option {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+}
+
+html.light select option {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+/* Ensure header and footer extend to full width */
+header, footer {
+  width: 100vw !important;
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Remove any container constraints */
+.container {
+  max-width: none !important;
+  width: 100% !important;
+}
+
+/* Ensure body and html take full width */
+html, body {
+  width: 100% !important;
+  max-width: none !important;
+  overflow-x: hidden;
 }

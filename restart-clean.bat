@@ -1,0 +1,19 @@
+@echo off
+echo Stopping all Node.js processes...
+taskkill /F /IM node.exe >nul 2>&1
+
+echo Cleaning build cache...
+rmdir /s /q .next >nul 2>&1
+rmdir /s /q node_modules\.cache >nul 2>&1
+
+echo Waiting for processes to fully stop...
+timeout /t 3 >nul
+
+echo Starting backend server...
+start /B node simple-backend.js
+
+echo Waiting for backend to initialize...
+timeout /t 5 >nul
+
+echo Starting Next.js development server...
+npm run dev 
