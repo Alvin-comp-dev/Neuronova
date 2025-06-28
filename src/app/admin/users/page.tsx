@@ -44,7 +44,11 @@ export default function UserManagement() {
       const response = await adminApi.getUsers();
       if (response.ok) {
         const data = await response.json();
-        setUsers(data.data || data);
+        const usersData = data.data || data;
+        // Ensure usersData is an array
+        setUsers(Array.isArray(usersData) ? usersData : []);
+      } else {
+        throw new Error('Failed to fetch users');
       }
     } catch (error) {
       console.error('Failed to fetch users:', error);
@@ -96,7 +100,8 @@ export default function UserManagement() {
     }
   };
 
-  const filteredUsers = users.filter(user => {
+  // Ensure users is always an array before filtering
+  const filteredUsers = (Array.isArray(users) ? users : []).filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = filterRole === 'all' || user.role === filterRole;
@@ -123,7 +128,7 @@ export default function UserManagement() {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'admin': return 'bg-red-100 text-red-800';
+      case 'admin': return 'bg-purple-100 text-purple-800';
       case 'researcher': return 'bg-blue-100 text-blue-800';
       case 'user': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -155,9 +160,7 @@ export default function UserManagement() {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
-                <p className="mt-1 text-sm text-gray-500">
-                  Manage user accounts, roles, and permissions
-                </p>
+                <p className="mt-1 text-sm text-gray-600">Manage user accounts, roles, and permissions</p>
               </div>
               <div className="flex items-center space-x-3">
                 <button className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
@@ -174,11 +177,11 @@ export default function UserManagement() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Filters and Search */}
         <div className="bg-white shadow rounded-lg mb-6">
           <div className="p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-6 sm:space-y-0">
               <div className="flex-1 max-w-lg">
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -186,8 +189,8 @@ export default function UserManagement() {
                   </div>
                   <input
                     type="text"
-                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Search users..."
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 text-gray-900 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="Search users by name or email..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -198,7 +201,7 @@ export default function UserManagement() {
                 <div className="flex items-center space-x-2">
                   <Filter className="h-4 w-4 text-gray-400" />
                   <select
-                    className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                    className="border border-gray-300 bg-white rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                     value={filterRole}
                     onChange={(e) => setFilterRole(e.target.value)}
                   >
@@ -210,7 +213,7 @@ export default function UserManagement() {
                 </div>
                 
                 <select
-                  className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                  className="border border-gray-300 bg-white rounded-md px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
                 >
@@ -223,21 +226,21 @@ export default function UserManagement() {
             </div>
 
             {selectedUsers.length > 0 && (
-              <div className="mt-4 flex items-center justify-between bg-blue-50 rounded-lg p-4">
-                <span className="text-sm text-blue-700">
+              <div className="mt-4 flex items-center justify-between bg-blue-50 rounded-lg p-4 border border-blue-200">
+                <span className="text-sm font-medium text-blue-700">
                   {selectedUsers.length} user{selectedUsers.length > 1 ? 's' : ''} selected
                 </span>
                 <div className="flex items-center space-x-2">
-                  <button className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200">
-                    <UserCheck className="w-3 h-3 mr-1" />
+                  <button className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700">
+                    <UserCheck className="w-4 h-4 mr-1" />
                     Activate
                   </button>
-                  <button className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200">
-                    <UserX className="w-3 h-3 mr-1" />
+                  <button className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-yellow-600 hover:bg-yellow-700">
+                    <UserX className="w-4 h-4 mr-1" />
                     Suspend
                   </button>
-                  <button className="inline-flex items-center px-3 py-1 border border-transparent text-xs font-medium rounded text-red-700 bg-red-100 hover:bg-red-200">
-                    <Trash2 className="w-3 h-3 mr-1" />
+                  <button className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700">
+                    <Trash2 className="w-4 h-4 mr-1" />
                     Delete
                   </button>
                 </div>
@@ -294,8 +297,8 @@ export default function UserManagement() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-10 w-10">
-                          <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                            <span className="text-sm font-medium text-gray-700">
+                          <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center">
+                            <span className="text-sm font-medium text-white">
                               {user.name.split(' ').map(n => n[0]).join('')}
                             </span>
                           </div>
@@ -307,36 +310,39 @@ export default function UserManagement() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${getRoleColor(user.role)}`}>
                         {user.role}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(user.status)}`}>
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(user.status)}`}>
                         {user.status}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {user.researchCount} papers
+                      <div className="flex items-center">
+                        <span className="font-medium">{user.researchCount}</span>
+                        <span className="ml-1 text-gray-500">papers</span>
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div className="flex items-center">
-                        <Calendar className="w-4 h-4 mr-1" />
+                        <Calendar className="w-4 h-4 mr-2" />
                         {new Date(user.lastActive).toLocaleDateString()}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex items-center space-x-2">
-                        <button className="text-blue-600 hover:text-blue-900">
+                      <div className="flex items-center justify-end space-x-2">
+                        <button className="p-1 text-blue-600 hover:text-blue-900">
                           <Edit className="w-4 h-4" />
                         </button>
-                        <button className="text-green-600 hover:text-green-900">
+                        <button className="p-1 text-green-600 hover:text-green-900">
                           <Shield className="w-4 h-4" />
                         </button>
-                        <button className="text-red-600 hover:text-red-900">
+                        <button className="p-1 text-red-600 hover:text-red-900">
                           <Trash2 className="w-4 h-4" />
                         </button>
-                        <button className="text-gray-400 hover:text-gray-600">
+                        <button className="p-1 text-gray-400 hover:text-gray-600">
                           <MoreVertical className="w-4 h-4" />
                         </button>
                       </div>
