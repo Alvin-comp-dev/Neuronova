@@ -41,7 +41,7 @@ export class CacheService {
   }
 
   // Get value from cache
-  public get<T>(key: string): T | undefined {
+  public async get<T>(key: string): Promise<T | undefined> {
     try {
       if (this.isRedisAvailable && this.redis) {
         const value = await this.redis.get(key);
@@ -58,7 +58,7 @@ export class CacheService {
   }
 
   // Set value in cache
-  public set<T>(key: string, value: T, ttl?: number): boolean {
+  public async set<T>(key: string, value: T, ttl?: number): Promise<boolean> {
     try {
       if (this.isRedisAvailable && this.redis) {
         await this.redis.setex(key, ttl || 3600, JSON.stringify(value));
@@ -73,7 +73,7 @@ export class CacheService {
   }
 
   // Delete value from cache
-  public del(key: string): number {
+  public async del(key: string): Promise<number> {
     try {
       if (this.isRedisAvailable && this.redis) {
         await this.redis.del(key);
@@ -87,7 +87,7 @@ export class CacheService {
   }
 
   // Clear all cache
-  public flush(): void {
+  public async flush(): Promise<void> {
     try {
       if (this.isRedisAvailable && this.redis) {
         await this.redis.flushall();
@@ -123,7 +123,7 @@ export class CacheService {
   }
 
   // Check if key exists
-  public has(key: string): boolean {
+  public async has(key: string): Promise<boolean> {
     try {
       if (this.isRedisAvailable && this.redis) {
         const exists = await this.redis.exists(key);

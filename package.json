@@ -9,7 +9,7 @@
     "dev:full": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "dev:frontend": "cross-env NEXT_TELEMETRY_DISABLED=1 next dev",
     "dev:backend": "nodemon --exec ts-node --project server/tsconfig.json server/app.ts",
-    "build": "next build && npm run build:backend",
+    "build": "cross-env NODE_ENV=production MONGODB_URI=mongodb://localhost:27017/neuronova-temp NEXTAUTH_SECRET=temporary-build-secret-32-chars-long NEXTAUTH_URL=http://localhost:3000 JWT_SECRET=temporary-jwt-secret-for-build-only next build && npm run build:backend",
     "build:analyze": "ANALYZE=true next build",
     "build:production": "NODE_ENV=production next build && npm run build:backend",
     "build:backend": "tsc --project server/tsconfig.json",

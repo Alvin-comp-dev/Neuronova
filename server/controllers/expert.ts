@@ -372,6 +372,7 @@ export const addInsight = async (req: AuthRequest, res: Response, next: NextFunc
       createdAt: new Date(),
     };
 
+    expert.insights = expert.insights || [];
     expert.insights.unshift(insight);
     await expert.save();
 
@@ -409,10 +410,15 @@ export const followExpert = async (req: AuthRequest, res: Response, next: NextFu
       return;
     }
 
-    const userId = req.user!._id;
+    const userId = new mongoose.Types.ObjectId(req.user!._id);
     const expertId = expertToFollow._id;
 
-    const isFollowing = expertToFollow.engagement.followers.includes(userId);
+    expertToFollow.engagement = expertToFollow.engagement || { followers: [], following: [] };
+    currentUserExpert.engagement = currentUserExpert.engagement || { followers: [], following: [] };
+
+    const isFollowing = expertToFollow.engagement.followers.some(
+      id => id.toString() === userId.toString()
+    );
 
     if (isFollowing) {
       // Unfollow

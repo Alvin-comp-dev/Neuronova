@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (action === 'flushCache') {
-      await cacheService.flushAll();
+      await cacheService.flush();
       return NextResponse.json({
         success: true,
         message: 'Cache flushed successfully'

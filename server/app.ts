@@ -2,7 +2,7 @@ import express from 'express';
 import http from 'http';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { connectMongoose } from '@/lib/mongodb';
+import { connectMongoose } from '../src/lib/mongodb';
 import webSocketManager from './websocket';
 import { errorHandler } from './middleware/errorHandler';
 // import { rateLimiter } from './middleware/rateLimiter';
