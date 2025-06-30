@@ -13,6 +13,9 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   
+  // Output configuration for standalone deployment
+  output: 'standalone',
+  
   // Minimal experimental config
   experimental: {
     optimizePackageImports: ['@heroicons/react'],
@@ -21,11 +24,30 @@ const nextConfig: NextConfig = {
   // Server config
   serverExternalPackages: ['mongodb'],
   
+  // Environment variables for build time
+  env: {
+    MONGODB_URI: process.env.MONGODB_URI || 'mongodb://localhost:27017/neuronova-temp',
+    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET || 'temporary-build-secret-32-chars-long',
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL || 'http://localhost:3000',
+    JWT_SECRET: process.env.JWT_SECRET || 'temporary-jwt-secret-for-build-only',
+  },
+  
   // Basic webpack config without caching issues
-  webpack: (config, { dev }) => {
+  webpack: (config, { dev, isServer }) => {
     if (dev) {
       config.cache = false; // Disable cache in development
     }
+    
+    // Handle build-time environment variables
+    if (isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      };
+    }
+    
     return config;
   },
   
