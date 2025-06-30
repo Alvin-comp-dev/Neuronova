@@ -3,20 +3,26 @@ FROM node:18-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat
+
+# Add necessary packages
+RUN apk add --no-cache libc6-compat python3 make g++
+
 WORKDIR /app
 
-# Install dependencies based on the preferred package manager
-COPY package.json package-lock.json* ./
-RUN \
-  if [ -f package-lock.json ]; then npm ci --legacy-peer-deps; \
-  else echo "Lockfile not found." && exit 1; \
-  fi
+# Copy package files
+COPY package.json ./
+COPY package-lock.json* ./
+
+# Install dependencies with more verbose output and error handling
+RUN set -x && \
+    npm install --legacy-peer-deps --verbose || \
+    (echo "Failed to install dependencies" && exit 1)
 
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
+
+# Copy dependencies and source code
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
@@ -24,8 +30,10 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED 1
 ENV NODE_ENV production
 
-# Build the application
-RUN npm run build
+# Build the application with error handling
+RUN set -x && \
+    npm run build || \
+    (echo "Build failed" && exit 1)
 
 # Production image, copy all the files and run next
 FROM base AS runner
@@ -38,15 +46,15 @@ ENV NEXT_TELEMETRY_DISABLED 1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy the public folder
+# Copy necessary files and set permissions
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/package.json ./package.json
 
-# Set the correct permission for prerender cache
+# Set up .next directory
 RUN mkdir .next
 RUN chown nextjs:nodejs .next
 
-# Automatically leverage output traces to reduce image size
-# https://nextjs.org/docs/advanced-features/output-file-tracing
+# Copy built application
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
@@ -55,9 +63,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/server ./server
 
 USER nextjs
 
+# Expose ports
 EXPOSE 3000
 EXPOSE 3003
 
+# Environment variables
 ENV PORT 3000
 ENV BACKEND_PORT 3003
 ENV HOSTNAME "0.0.0.0"
