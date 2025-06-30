@@ -459,7 +459,7 @@ export const getTopExpertsByExpertise = async (req: Request, res: Response, next
     const { expertise } = req.params;
     const { limit = 10 } = req.query;
 
-    const limitNum = Math.min(50, Math.max(1, parseInt(limit as string)));
+    const limitNum = Math.min(50, Math.max(1, Number(limit) || 10));
 
     // Use regular find instead of findByExpertise method
     const experts = await Expert.find({ 'expertise.areas': expertise })

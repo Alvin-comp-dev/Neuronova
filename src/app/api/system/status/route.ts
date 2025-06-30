@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { cacheService } from '../../../../../server/services/cacheService';
+import cacheService from '../../../../../server/services/cacheService';
 import { rateLimitService } from '../../../../../server/services/rateLimitService';
 
 export async function GET(request: NextRequest) {
   try {
     // Get cache statistics
-    const cacheStats = cacheService.getStats();
+    const cacheStats = await cacheService.getStats();
     
     // Get rate limiting statistics
     const rateLimitStats = await rateLimitService.getStats();

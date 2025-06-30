@@ -49,12 +49,12 @@ export class CacheService {
           return JSON.parse(value);
         }
       }
+      // Fallback to memory cache
+      return this.cache.get<T>(key);
     } catch (error) {
       console.warn('⚠️ Redis get error, falling back to memory cache:', error);
+      return undefined;
     }
-
-    // Fallback to memory cache
-    return this.cache.get<T>(key);
   }
 
   // Set value in cache
@@ -64,12 +64,12 @@ export class CacheService {
         await this.redis.setex(key, ttl || 3600, JSON.stringify(value));
         return true;
       }
+      // Fallback to memory cache
+      return this.cache.set(key, value, ttl || 3600);
     } catch (error) {
       console.warn('⚠️ Redis set error, falling back to memory cache:', error);
+      return false;
     }
-
-    // Fallback to memory cache
-    return this.cache.set(key, value, ttl || 3600);
   }
 
   // Delete value from cache
@@ -78,12 +78,12 @@ export class CacheService {
       if (this.isRedisAvailable && this.redis) {
         await this.redis.del(key);
       }
+      // Also delete from memory cache
+      return this.cache.del(key);
     } catch (error) {
       console.warn('⚠️ Redis delete error:', error);
+      return 0;
     }
-
-    // Also delete from memory cache
-    return this.cache.del(key);
   }
 
   // Clear all cache
@@ -92,16 +92,15 @@ export class CacheService {
       if (this.isRedisAvailable && this.redis) {
         await this.redis.flushall();
       }
+      // Also flush memory cache
+      this.cache.flushAll();
     } catch (error) {
       console.warn('⚠️ Redis flush error:', error);
     }
-
-    // Also flush memory cache
-    this.cache.flushAll();
   }
 
   // Get cache statistics
-  public getStats() {
+  public async getStats(): Promise<any> {
     try {
       const memoryStats = this.cache.getStats();
       return {
@@ -129,16 +128,16 @@ export class CacheService {
         const exists = await this.redis.exists(key);
         return exists === 1;
       }
+      // Fallback to memory cache
+      return this.cache.has(key);
     } catch (error) {
       console.warn('⚠️ Redis exists error, checking memory cache:', error);
+      return false;
     }
-
-    // Fallback to memory cache
-    return this.cache.has(key);
   }
 
   // Get all keys
-  public keys(): string[] {
+  public async keys(): Promise<string[]> {
     try {
       return this.cache.keys();
     } catch (error) {
@@ -148,7 +147,7 @@ export class CacheService {
   }
 
   // Set multiple values
-  public mset<T>(keyValuePairs: Array<{ key: string; val: T; ttl?: number }>): boolean {
+  public async mset<T>(keyValuePairs: Array<{ key: string; val: T; ttl?: number }>): Promise<boolean> {
     try {
       return this.cache.mset(keyValuePairs);
     } catch (error) {
@@ -158,7 +157,7 @@ export class CacheService {
   }
 
   // Get multiple values
-  public mget<T>(keys: string[]): { [key: string]: T } {
+  public async mget<T>(keys: string[]): Promise<{ [key: string]: T }> {
     try {
       return this.cache.mget(keys);
     } catch (error) {
