@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { EyeIcon, EyeSlashIcon, ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { useAppDispatch } from '@/lib/store/hooks';
 import { setAuth } from '@/lib/store/slices/authSlice';
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const [formData, setFormData] = useState({
     password: '',
     confirmPassword: '',
@@ -281,5 +281,17 @@ export default function ResetPasswordPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <ResetPasswordForm />
+    </Suspense>
   );
 } 

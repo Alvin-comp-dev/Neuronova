@@ -36,6 +36,9 @@ if (MONGODB_URI) {
   }
 }
 
+// Alias for connectMongoose to maintain backward compatibility
+export const connectToDatabase = connectMongoose;
+
 export async function connectMongoose(): Promise<boolean> {
   try {
     if (mongoose.connection.readyState >= 1) {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
-import { UserModel } from '@/lib/models/User';
+import { UserService } from '@/lib/models/User';
 
 export async function POST(request: NextRequest) {
   try {
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user by reset token
-    const user = await UserModel.findByResetToken(token);
+    const user = await UserService.findByResetToken(token);
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'Invalid or expired reset token' },
@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update password and clear reset token
-    await UserModel.updatePassword(user._id!.toString(), password);
+    await UserService.updatePassword(user._id!.toString(), password);
 
     // Generate new JWT token for automatic login
     const jwtToken = jwt.sign(
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     );
 
     // Return success with new token
-    const publicUser = UserModel.toPublicUser(user);
+    const publicUser = UserService.toPublicUser(user);
 
     return NextResponse.json({
       success: true,

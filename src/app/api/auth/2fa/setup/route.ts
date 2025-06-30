@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../../[...nextauth]/route';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
 import { connectToDatabase } from '@/lib/mongodb';
@@ -9,8 +9,8 @@ import { User } from '@/lib/models/User';
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!session?.user?.id || !session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized or invalid session' }, { status: 401 });
     }
 
     await connectToDatabase();
@@ -22,8 +22,12 @@ export async function POST(request: NextRequest) {
       length: 32,
     });
 
+    if (!secret?.otpauth_url) {
+      throw new Error('Failed to generate 2FA secret');
+    }
+
     // Generate QR code
-    const qrCodeUrl = await QRCode.toDataURL(secret.otpauth_url!);
+    const qrCodeUrl = await QRCode.toDataURL(secret.otpauth_url);
 
     // Store the secret temporarily (not enabled yet)
     await User.findByIdAndUpdate(session.user.id, {

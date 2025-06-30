@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
-import { UserModel } from '@/lib/models/User';
+import { UserService } from '@/lib/models/User';
 
 // Middleware to verify admin access
 async function verifyAdmin(request: NextRequest) {
@@ -13,7 +13,7 @@ async function verifyAdmin(request: NextRequest) {
     const token = authHeader.substring(7);
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'neuronova_jwt_secret_key_change_this_in_production_2024') as { id: string };
     
-    const user = await UserModel.findById(decoded.id);
+    const user = await UserService.findById(decoded.id);
     if (!user || user.role !== 'admin') {
       return null;
     }
@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
 
     // Fetch users
-    const users = await UserModel.findAll(limit);
+    const users = await UserService.findAll(limit);
     
     // Transform users for admin view
     const adminUsers = users.map(user => ({
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already exists
-    const existingUser = await UserModel.findByEmail(userData.email);
+    const existingUser = await UserService.findByEmail(userData.email);
     if (existingUser) {
       return NextResponse.json(
         { success: false, error: 'User already exists with this email' },
@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create new user
-    const newUser = await UserModel.create({
+    const newUser = await UserService.create({
       name: userData.name.trim(),
       email: userData.email.toLowerCase(),
       password: userData.password,
@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Return created user (without sensitive data)
-    const publicUser = UserModel.toPublicUser(newUser);
+    const publicUser = UserService.toPublicUser(newUser);
 
     return NextResponse.json({
       success: true,
@@ -200,7 +200,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update user
-    const updatedUser = await UserModel.update(userId, updateData);
+    const updatedUser = await UserService.update(userId, updateData);
     if (!updatedUser) {
       return NextResponse.json(
         { success: false, error: 'User not found' },
@@ -209,7 +209,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Return updated user
-    const publicUser = UserModel.toPublicUser(updatedUser);
+    const publicUser = UserService.toPublicUser(updatedUser);
 
     return NextResponse.json({
       success: true,
