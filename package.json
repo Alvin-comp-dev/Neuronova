@@ -82,6 +82,7 @@
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.516.0",
+    "marked": "^15.0.12",
     "mongodb": "^6.17.0",
     "mongoose": "^8.16.0",
     "multer": "^2.0.1",

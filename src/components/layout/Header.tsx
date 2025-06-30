@@ -24,6 +24,7 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
   const { isDarkMode } = useAppSelector((state) => state.theme);
   const dispatch = useAppDispatch();
@@ -64,6 +65,15 @@ export default function Header() {
     console.log('Document classes after toggle:', html.className);
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      router.push('/search');
+    }
+  };
+
   const navigation = [
     { name: 'Home', href: '/' },
     { name: 'Research Feed', href: '/research' },
@@ -84,9 +94,11 @@ export default function Header() {
             {/* Logo */}
             <div className="flex items-center flex-shrink-0">
               <Link href="/" className="flex items-center space-x-2">
-                <div className="h-8 w-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
-                  <span className="text-white font-bold text-sm">N</span>
-                </div>
+                <img 
+                  src="/neuronova-logo.svg" 
+                  alt="Neuronova Logo" 
+                  className="h-8 w-8"
+                />
                 <span className="text-xl font-bold text-white">
                   Neuronova
                 </span>
@@ -95,15 +107,22 @@ export default function Header() {
 
             {/* Desktop Search */}
             <div className="hidden md:flex flex-1 mx-8">
-              <div className="relative w-full">
+              <form onSubmit={handleSearch} className="relative w-full">
                 <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search research papers, authors, topics..."
                   className="w-full pl-10 pr-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-slate-400"
-                  onClick={() => router.push('/search')}
                 />
-              </div>
+                <button
+                  type="submit"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-600"
+                >
+                  <MagnifyingGlassIcon className="h-5 w-5" />
+                </button>
+              </form>
             </div>
 
             {/* Desktop Navigation */}
@@ -240,15 +259,22 @@ export default function Header() {
 
           {/* Mobile Search */}
           <div className="md:hidden pb-4">
-            <div className="relative">
+            <form onSubmit={handleSearch} className="relative w-full">
               <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search research..."
                 className="w-full pl-10 pr-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-slate-400"
-                onClick={() => router.push('/search')}
               />
-            </div>
+              <button
+                type="submit"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-600"
+              >
+                <MagnifyingGlassIcon className="h-5 w-5" />
+              </button>
+            </form>
           </div>
         </div>
       </header>

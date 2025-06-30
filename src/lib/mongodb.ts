@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 let client: MongoClient | null = null;
 let clientPromise: Promise<MongoClient> | null = null;
 
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/neuronova';
 const MONGODB_DB = process.env.MONGODB_DB || 'neuronova';
 
 // Connection options
@@ -42,13 +42,13 @@ export async function connectMongoose(): Promise<boolean> {
       return true;
     }
 
-    console.log('🔄 Connecting Mongoose to MongoDB...');
+    console.log('🔄 Connecting Mongoose to MongoDB Atlas...');
     await mongoose.connect(MONGODB_URI, {
       dbName: MONGODB_DB,
       ...options,
     });
     
-    console.log('✅ Mongoose connected to MongoDB');
+    console.log('✅ Mongoose connected to MongoDB Atlas');
     return true;
   } catch (error) {
     console.error('❌ Mongoose connection error:', error);
@@ -71,9 +71,9 @@ export async function disconnectFromDatabase(): Promise<void> {
       await mongoose.disconnect();
     }
     
-    console.log('🔌 Disconnected from MongoDB');
+    console.log('🔌 Disconnected from MongoDB Atlas');
   } catch (error) {
-    console.error('❌ Error disconnecting from MongoDB:', error);
+    console.error('❌ Error disconnecting from MongoDB Atlas:', error);
   }
 }
 
@@ -97,9 +97,9 @@ export async function initializeDatabase(): Promise<void> {
     await connectMongoose();
   } catch (error) {
     console.warn('⚠️ Running without database connection');
-    console.log('💡 To set up MongoDB:');
-    console.log('   1. Local: Install MongoDB Community Server');
-    console.log('   2. Cloud: Use MongoDB Atlas (https://cloud.mongodb.com)');
+    console.log('💡 To set up MongoDB Atlas:');
+    console.log('   1. Create a free cluster at https://cloud.mongodb.com');
+    console.log('   2. Get your connection string from the cluster');
     console.log('   3. Set MONGODB_URI in your environment variables');
   }
 }
@@ -115,7 +115,7 @@ export async function getDatabase(): Promise<Db | null> {
     const client = await clientPromise;
     return client.db(MONGODB_DB);
   } catch (error) {
-    console.error('Failed to connect to MongoDB:', error);
+    console.error('Failed to connect to MongoDB Atlas:', error);
     return null;
   }
 }

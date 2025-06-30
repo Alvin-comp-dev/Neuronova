@@ -53,8 +53,13 @@ class WebSocketService {
   private initializeSocket() {
     if (typeof window === 'undefined') return; // Server-side check
 
+    // Temporarily disable WebSocket to prevent XHR poll errors
+    // TODO: Re-enable when WebSocket server is properly configured
+    console.log('🚫 WebSocket disabled - preventing XHR poll errors');
+    return;
+
     try {
-      this.socket = io('ws://localhost:3003', {
+      this.socket = io('http://localhost:3000', {
         autoConnect: true,
         reconnection: true,
         reconnectionAttempts: this.maxReconnectAttempts,

@@ -536,13 +536,12 @@ researchSchema.statics.getTrendingTopics = function(limit: number = 10) {
   ]);
 };
 
-// Create model with proper error handling
-let Research: any;
-
+// Export the model
+let Research: IResearchModel;
 try {
-  Research = mongoose.model('Research');
+  Research = mongoose.model<IResearch, IResearchModel>('Research');
 } catch {
-  Research = mongoose.model('Research', researchSchema);
+  Research = mongoose.model<IResearch, IResearchModel>('Research', researchSchema);
 }
 
 export default Research; 

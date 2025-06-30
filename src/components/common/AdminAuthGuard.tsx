@@ -12,12 +12,14 @@ interface AdminAuthGuardProps {
 
 export default function AdminAuthGuard({ children }: AdminAuthGuardProps) {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const { user, isAuthenticated, isInitialized, isLoading } = useAppSelector((state) => state.auth);
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    // Wait for auth to initialize
+    // Initialize auth if not already done
     if (!isInitialized) {
+      dispatch(initializeAuth());
       return;
     }
 
@@ -34,7 +36,7 @@ export default function AdminAuthGuard({ children }: AdminAuthGuardProps) {
       router.push('/');
       return;
     }
-  }, [isAuthenticated, user, isInitialized, router]);
+  }, [isAuthenticated, user, isInitialized, router, dispatch]);
 
   // Show loading while checking authentication
   if (isLoading || isChecking || !isInitialized) {
@@ -53,7 +55,7 @@ export default function AdminAuthGuard({ children }: AdminAuthGuardProps) {
     return null;
   }
 
-  // If not admin, don't render anything (will redirect)
+  // If not admin, show access denied
   if (user.role !== 'admin') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">

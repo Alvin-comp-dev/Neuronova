@@ -70,6 +70,70 @@ const mockUsers = [
   }
 ];
 
+// Mock admin users for user management
+const mockAdminUsers = [
+  {
+    id: '1',
+    name: 'Dr. Sarah Johnson',
+    email: 'sarah.johnson@university.edu',
+    role: 'researcher',
+    status: 'active',
+    joinDate: '2024-01-15',
+    lastActive: '2024-01-20',
+    researchCount: 12
+  },
+  {
+    id: '2',
+    name: 'John Smith',
+    email: 'john.smith@example.com',
+    role: 'user',
+    status: 'active',
+    joinDate: '2024-01-10',
+    lastActive: '2024-01-19',
+    researchCount: 3
+  },
+  {
+    id: '3',
+    name: 'Admin User',
+    email: 'admin@neuronova.com',
+    role: 'admin',
+    status: 'active',
+    joinDate: '2023-12-01',
+    lastActive: '2024-01-20',
+    researchCount: 0
+  },
+  {
+    id: '4',
+    name: 'Dr. Michael Chen',
+    email: 'michael.chen@research.org',
+    role: 'researcher',
+    status: 'suspended',
+    joinDate: '2023-11-20',
+    lastActive: '2024-01-15',
+    researchCount: 8
+  },
+  {
+    id: '5',
+    name: 'Dr. Emily Davis',
+    email: 'emily.davis@institute.edu',
+    role: 'researcher',
+    status: 'active',
+    joinDate: '2023-12-15',
+    lastActive: '2024-01-18',
+    researchCount: 15
+  },
+  {
+    id: '6',
+    name: 'Mark Wilson',
+    email: 'mark.wilson@company.com',
+    role: 'user',
+    status: 'inactive',
+    joinDate: '2023-10-05',
+    lastActive: '2023-12-01',
+    researchCount: 1
+  }
+];
+
 const server = http.createServer((req, res) => {
   const parsedUrl = url.parse(req.url, true);
   const pathname = parsedUrl.pathname;
@@ -201,6 +265,153 @@ const server = http.createServer((req, res) => {
       success: true,
       data: trending
     }));
+    
+  } else if (pathname === '/api/admin/users') {
+    res.writeHead(200);
+    res.end(JSON.stringify({
+      success: true,
+      data: mockAdminUsers
+    }));
+    
+  } else if (pathname === '/api/admin/stats') {
+    res.writeHead(200);
+    res.end(JSON.stringify({
+      success: true,
+      data: {
+        totalUsers: mockAdminUsers.length,
+        activeUsers: mockAdminUsers.filter(u => u.status === 'active').length,
+        totalResearchers: mockAdminUsers.filter(u => u.role === 'researcher').length,
+        totalPapers: mockResearch.length,
+        totalCitations: mockResearch.reduce((sum, r) => sum + r.citationCount, 0)
+      }
+    }));
+    
+  } else if (pathname === '/api/admin/content') {
+    const mockContentItems = [
+      {
+        id: '1',
+        title: 'Novel Approach to Quantum Computing',
+        type: 'research',
+        author: 'Dr. Sarah Johnson',
+        content: 'This research paper explores a novel approach to quantum computing using advanced algorithms that could revolutionize the field. The methodology involves...',
+        status: 'pending',
+        flagReason: 'Potential copyright issues - needs verification',
+        submittedAt: '2024-01-20T10:30:00Z'
+      },
+      {
+        id: '2',
+        title: 'Discussion on AI Ethics in Healthcare',
+        type: 'discussion',
+        author: 'John Smith',
+        content: 'I believe we need to consider the ethical implications of AI development in healthcare. The rapid advancement of AI technologies raises important questions about privacy, consent, and decision-making autonomy...',
+        status: 'approved',
+        submittedAt: '2024-01-19T15:45:00Z',
+        reviewedAt: '2024-01-19T16:00:00Z',
+        reviewedBy: 'Admin User'
+      },
+      {
+        id: '3',
+        title: 'Comment on Machine Learning Paper',
+        type: 'comment',
+        author: 'Dr. Michael Chen',
+        content: 'This paper has some interesting insights, but I disagree with the methodology used in section 3. The sample size seems insufficient for the conclusions drawn...',
+        status: 'pending',
+        flagReason: 'Needs fact-checking on methodology claims',
+        submittedAt: '2024-01-18T09:15:00Z'
+      },
+      {
+        id: '4',
+        title: 'Climate Change Research Data Analysis',
+        type: 'research',
+        author: 'Dr. Emily Davis',
+        content: 'Our latest research on climate change patterns shows significant trends in global temperature variations. The data collected over the past decade indicates...',
+        status: 'rejected',
+        flagReason: 'Insufficient peer review documentation',
+        submittedAt: '2024-01-17T14:20:00Z',
+        reviewedAt: '2024-01-17T16:30:00Z',
+        reviewedBy: 'Admin User'
+      },
+      {
+        id: '5',
+        title: 'Neural Network Architecture Discussion',
+        type: 'discussion',
+        author: 'Dr. Lisa Wang',
+        content: 'The new transformer architecture proposed in the recent paper shows promising results. However, I think there are some optimization opportunities that were missed...',
+        status: 'approved',
+        submittedAt: '2024-01-16T11:20:00Z',
+        reviewedAt: '2024-01-16T12:00:00Z',
+        reviewedBy: 'Content Moderator'
+      },
+      {
+        id: '6',
+        title: 'Inappropriate Research Submission',
+        type: 'research',
+        author: 'Anonymous User',
+        content: 'This content contains inappropriate material and violates community guidelines...',
+        status: 'rejected',
+        flagReason: 'Violates community guidelines - inappropriate content',
+        submittedAt: '2024-01-15T08:30:00Z',
+        reviewedAt: '2024-01-15T09:00:00Z',
+        reviewedBy: 'Admin User'
+      }
+    ];
+    
+    res.writeHead(200);
+    res.end(JSON.stringify({
+      success: true,
+      data: mockContentItems
+    }));
+    
+  } else if (pathname === '/api/admin/content/approve' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    req.on('end', () => {
+      try {
+        const { contentIds } = JSON.parse(body);
+        console.log('Approving content items:', contentIds);
+        res.writeHead(200);
+        res.end(JSON.stringify({
+          success: true,
+          message: `Approved ${contentIds.length} content item(s)`,
+          approvedIds: contentIds
+        }));
+      } catch (error) {
+        res.writeHead(400);
+        res.end(JSON.stringify({
+          success: false,
+          error: 'Invalid request body'
+        }));
+      }
+    });
+    return;
+    
+  } else if (pathname === '/api/admin/content/reject' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    req.on('end', () => {
+      try {
+        const { contentIds, reason } = JSON.parse(body);
+        console.log('Rejecting content items:', contentIds, 'Reason:', reason);
+        res.writeHead(200);
+        res.end(JSON.stringify({
+          success: true,
+          message: `Rejected ${contentIds.length} content item(s)`,
+          rejectedIds: contentIds,
+          reason: reason
+        }));
+      } catch (error) {
+        res.writeHead(400);
+        res.end(JSON.stringify({
+          success: false,
+          error: 'Invalid request body'
+        }));
+      }
+    });
+    return;
     
   } else if (pathname.startsWith('/api/')) {
     // Catch all for API routes

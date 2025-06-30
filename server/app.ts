@@ -1,7 +1,9 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
+import http from 'http';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { connectDB } from './config/database';
+import { connectMongoose } from '@/lib/mongodb';
+import webSocketManager from './websocket';
 import { errorHandler } from './middleware/errorHandler';
 // import { rateLimiter } from './middleware/rateLimiter';
 
@@ -20,26 +22,29 @@ import securityRoutes from './routes/security';
 dotenv.config();
 
 const app = express();
-const PORT = process.env['PORT'] || 3001;
+const server = http.createServer(app);
 
-// Connect to Database
-connectDB();
+// Initialize WebSocket server
+webSocketManager.initialize(server);
 
 // Middleware
 app.use(cors({
-  origin: process.env['NODE_ENV'] === 'production' 
-    ? ['https://neuronova.com'] 
-    : ['http://localhost:3000', 'http://localhost:3002'],
-  credentials: true,
+  origin: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+  credentials: true
 }));
+app.use(express.json());
 
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+// Connect to MongoDB
+connectMongoose().then(() => {
+  console.log('✅ MongoDB connected successfully');
+}).catch(err => {
+  console.error('❌ MongoDB connection error:', err);
+});
 
 // Rate limiting - temporarily disabled
 // app.use(rateLimiter);
 
-// API Routes
+// Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/research', researchRoutes);
@@ -47,13 +52,18 @@ app.use('/api/community', communityRoutes);
 app.use('/api/experts', expertRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/enterprise', enterpriseRoutes);
+app.use('/api/security', securityRoutes);
 
 // Health check endpoint
-app.get('/api/health', (_req: Request, res: Response) => {
-  res.status(200).json({
-    status: 'OK',
-    message: 'Neuronova API is running',
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'healthy',
     timestamp: new Date().toISOString(),
+    websocket: {
+      connected: webSocketManager.getConnectedUserCount(),
+      users: webSocketManager.getConnectedUserIds()
+    }
   });
 });
 
@@ -61,18 +71,17 @@ app.get('/api/health', (_req: Request, res: Response) => {
 app.use(errorHandler);
 
 // 404 handler
-app.use('*', (_req: Request, res: Response) => {
+app.use('*', (_req: express.Request, res: express.Response) => {
   res.status(404).json({
     success: false,
     message: 'API route not found',
   });
 });
 
-if (process.env['NODE_ENV'] !== 'test') {
-  app.listen(PORT, () => {
-    console.log(`🚀 Server is running on port ${PORT}`);
-    console.log(`🌍 Environment: ${process.env['NODE_ENV']}`);
-  });
-}
+const PORT = process.env.PORT || 3001;
+
+server.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
 
 export default app; 
