@@ -4,15 +4,15 @@ import NodeCache from 'node-cache';
 // Mock Redis class to prevent any Redis connections
 class MockRedis {
   status = 'disconnected';
-  async ping() { throw new Error('Redis disabled'); }
-  async get() { return null; }
-  async set() { return 'OK'; }
-  async setex() { return 'OK'; }
-  async del() { return 1; }
-  async exists() { return 0; }
-  async flushall() { return 'OK'; }
-  on() { return this; }
-  disconnect() { return Promise.resolve(); }
+  async ping(): Promise<string> { throw new Error('Redis disabled'); }
+  async get(key: string): Promise<string | null> { return null; }
+  async set(key: string, value: string): Promise<'OK'> { return 'OK'; }
+  async setex(key: string, seconds: number, value: string): Promise<'OK'> { return 'OK'; }
+  async del(key: string): Promise<number> { return 1; }
+  async exists(key: string): Promise<number> { return 0; }
+  async flushall(): Promise<'OK'> { return 'OK'; }
+  on(event: string, callback: () => void): this { return this; }
+  disconnect(): Promise<void> { return Promise.resolve(); }
 }
 
 // Create cache instance with default TTL of 1 hour

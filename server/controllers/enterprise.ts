@@ -1,8 +1,9 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import Organization from '../models/Organization';
 import Team from '../models/Team';
 import User from '../models/User';
 import jwt from 'jsonwebtoken';
+import { AuthRequest } from '../middleware/auth';
 
 // Utility function to verify admin/enterprise access
 const verifyEnterpriseAccess = (req: Request): any => {
@@ -422,4 +423,41 @@ const getPermissionsByRole = (role: string): string[] => {
   };
   
   return permissions[role as keyof typeof permissions] || permissions.collaborator;
+};
+
+export const getEnterpriseStats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    // ... existing code ...
+    res.status(200).json({
+      success: true,
+      data: {
+        // ... stats data ...
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateTeamMember = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { memberId } = req.params;
+    const { role, permissions } = req.body;
+
+    // Type the member parameter
+    const member: { id: string; role: string; permissions: string[] } = {
+      id: memberId,
+      role,
+      permissions
+    };
+
+    // ... rest of the code ...
+
+    res.status(200).json({
+      success: true,
+      data: member
+    });
+  } catch (error) {
+    next(error);
+  }
 }; 

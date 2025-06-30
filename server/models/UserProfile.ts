@@ -268,4 +268,9 @@ UserProfileSchema.methods.getAchievementPoints = function(level: string) {
   return points[level] || 0;
 };
 
+// Add type for parameter a
+export const sortByDate = (a: { date: Date }, b: { date: Date }): number => {
+  return new Date(b.date).getTime() - new Date(a.date).getTime();
+};
+
 export default mongoose.models.UserProfile || mongoose.model<IUserProfile>('UserProfile', UserProfileSchema); 

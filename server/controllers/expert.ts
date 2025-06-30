@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import Expert, { IExpert } from '../models/Expert';
 import { AuthRequest } from '../middleware/auth';
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 
 // @desc    Get all experts with filtering and pagination
 // @route   GET /api/experts
@@ -350,7 +350,15 @@ export const createOrUpdateProfile = async (req: AuthRequest, res: Response, nex
 // @access  Private
 export const addInsight = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const expert = await Expert.findOne({ user: req.user!._id });
+    if (!req.user?._id) {
+      res.status(401).json({
+        success: false,
+        error: 'User ID not found'
+      });
+      return;
+    }
+
+    const expert = await Expert.findOne({ user: req.user._id });
 
     if (!expert) {
       res.status(404).json({
@@ -386,18 +394,34 @@ export const addInsight = async (req: AuthRequest, res: Response, next: NextFunc
   }
 };
 
+interface ExpertEngagement {
+  followers: Types.ObjectId[];
+  following: Types.ObjectId[];
+}
+
 // @desc    Follow/unfollow expert
 // @route   POST /api/experts/:id/follow
 // @access  Private
 export const followExpert = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const expertToFollow = await Expert.findById(req.params.id);
-    const currentUserExpert = await Expert.findOne({ user: req.user!._id });
+    if (!req.user?._id) {
+      res.status(401).json({
+        success: false,
+        error: 'User ID not found'
+      });
+      return;
+    }
+
+    const userId = new Types.ObjectId(req.user._id);
+    const expertId = new Types.ObjectId(req.params.id);
+
+    const expertToFollow = await Expert.findById(expertId);
+    const currentUserExpert = await Expert.findOne({ user: userId });
 
     if (!expertToFollow) {
       res.status(404).json({
         success: false,
-        error: 'Expert not found',
+        error: 'Expert not found'
       });
       return;
     }
@@ -405,14 +429,12 @@ export const followExpert = async (req: AuthRequest, res: Response, next: NextFu
     if (!currentUserExpert) {
       res.status(404).json({
         success: false,
-        error: 'Your expert profile not found. Please create your profile first.',
+        error: 'Your expert profile not found. Please create your profile first.'
       });
       return;
     }
 
-    const userId = new mongoose.Types.ObjectId(req.user!._id);
-    const expertId = expertToFollow._id;
-
+    // Initialize engagement if not exists
     expertToFollow.engagement = expertToFollow.engagement || { followers: [], following: [] };
     currentUserExpert.engagement = currentUserExpert.engagement || { followers: [], following: [] };
 
