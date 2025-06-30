@@ -339,10 +339,11 @@ export const joinTeam = async (req: Request, res: Response): Promise<void> => {
 
     const team = await Team.findById(teamId);
     if (!team) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         error: 'Team not found'
       });
+      return;
     }
 
     // Check if user is already a member
@@ -351,18 +352,20 @@ export const joinTeam = async (req: Request, res: Response): Promise<void> => {
     );
     
     if (existingMember) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: 'User is already a team member'
       });
+      return;
     }
 
     // Check team capacity
     if (team.members.length >= team.collaboration.maxMembers) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: 'Team has reached maximum capacity'
       });
+      return;
     }
 
     // Add member to team

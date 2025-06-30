@@ -89,3 +89,31 @@ export const adminApi = {
   updateUser: (userId: string, userData: any) => api.put('/api/admin/users', { userId, ...userData }),
   deleteUser: (userId: string) => api.delete(`/api/admin/users/${userId}`),
 };
+
+export const getApiUrl = () => {
+  return process.env.NEXT_PUBLIC_API_URL || '';
+};
+
+export const getFullApiUrl = (endpoint: string) => {
+  const apiUrl = getApiUrl();
+  return `${apiUrl}${endpoint}`;
+};
+
+export const fetchApi = async (endpoint: string, options: RequestInit = {}) => {
+  const url = getFullApiUrl(endpoint);
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+    });
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error(`Error fetching ${url}:`, error);
+    throw error;
+  }
+};

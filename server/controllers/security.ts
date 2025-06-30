@@ -370,10 +370,11 @@ export const gdprDataExport = async (req: Request, res: Response): Promise<void>
     // Get user data
     const userData = await User.findById(userId).lean();
     if (!userData) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         error: 'User not found'
       });
+      return;
     }
     
     // Log data access
@@ -396,7 +397,7 @@ export const gdprDataExport = async (req: Request, res: Response): Promise<void>
         name: userData.name,
         email: userData.email,
         createdAt: userData.createdAt,
-        lastLogin: userData.lastLogin
+        lastLogin: (userData as any).lastLogin || null
       },
       // Add other data categories...
       metadata: {

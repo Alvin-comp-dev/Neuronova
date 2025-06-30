@@ -170,7 +170,7 @@ async function setupSearchIndexes() {
     console.log(`📊 Top trending keywords:`, trendingKeywords.map((k: any) => k._id));
 
   } catch (error) {
-    console.error('❌ Error setting up search indexes:', error);
+    console.error('❌ Error setting up search indexes:', error instanceof Error ? error.message : 'Unknown error');
     process.exit(1);
   } finally {
     await mongoose.disconnect();

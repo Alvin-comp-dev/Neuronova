@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import Expert, { IExpert } from '../models/Expert';
 import { AuthRequest } from '../middleware/auth';
+import mongoose from 'mongoose';
 
 // @desc    Get all experts with filtering and pagination
 // @route   GET /api/experts
@@ -267,12 +268,12 @@ export const getExpert = async (req: Request, res: Response, next: NextFunction)
       data: expert,
     });
   } catch (error) {
-    if (error.name === 'CastError') {
+    if (error instanceof Error && error.name === 'CastError') {
       res.status(404).json({
         success: false,
         error: 'Expert not found',
       });
-    return;
+      return;
     }
     next(error);
   }
@@ -356,10 +357,11 @@ export const addInsight = async (req: AuthRequest, res: Response, next: NextFunc
         success: false,
         error: 'Expert profile not found',
       });
-    return;
+      return;
     }
 
     const insight = {
+      _id: new mongoose.Types.ObjectId(),
       title: req.body.title,
       content: req.body.content,
       type: req.body.type || 'insight',
@@ -396,7 +398,7 @@ export const followExpert = async (req: AuthRequest, res: Response, next: NextFu
         success: false,
         error: 'Expert not found',
       });
-    return;
+      return;
     }
 
     if (!currentUserExpert) {
@@ -404,7 +406,7 @@ export const followExpert = async (req: AuthRequest, res: Response, next: NextFu
         success: false,
         error: 'Your expert profile not found. Please create your profile first.',
       });
-    return;
+      return;
     }
 
     const userId = req.user!._id;
@@ -453,7 +455,8 @@ export const getTopExpertsByExpertise = async (req: Request, res: Response, next
 
     const limitNum = Math.min(50, Math.max(1, parseInt(limit as string)));
 
-    const experts = await Expert.findByExpertise(expertise)
+    // Use regular find instead of findByExpertise method
+    const experts = await Expert.find({ 'expertise.areas': expertise })
       .limit(limitNum)
       .populate('user', 'name avatar')
       .lean();
@@ -462,7 +465,6 @@ export const getTopExpertsByExpertise = async (req: Request, res: Response, next
       success: true,
       data: experts,
       expertise,
-      count: experts.length,
     });
   } catch (error) {
     next(error);
