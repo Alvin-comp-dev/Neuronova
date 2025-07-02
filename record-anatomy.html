@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NeuroNova Anatomy Animation Recorder</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body { margin: 0; padding: 0; background: #0f172a; overflow: hidden; }
+        #controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            border-radius: 8px;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover { background: #2563eb; }
+        #status { margin-top: 10px; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <h3>NeuroNova Anatomy Recorder</h3>
+        <button onclick="startRecording()">Start Recording</button>
+        <button onclick="stopRecording()">Stop Recording</button>
+        <button onclick="downloadVideo()">Download MP4</button>
+        <div id="status">Ready to record...</div>
+    </div>
+    <div id="container"></div>
+
+    <script>
+        let scene, camera, renderer, anatomyGroup;
+        let mediaRecorder, recordedChunks = [];
+        let time = 0;
+
+        function init() {
+            // Scene setup (same as your component)
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, preserveDrawingBuffer: true });
+            
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setClearColor(0x0f172a, 1);
+            document.getElementById('container').appendChild(renderer.domElement);
+
+            // Create anatomy group
+            anatomyGroup = new THREE.Group();
+            scene.add(anatomyGroup);
+
+            // Create human body parts (same as your component)
+            const bodyParts = [
+                { geometry: new THREE.SphereGeometry(0.8, 32, 32), position: [0, 3.5, 0], color: 0xff6b6b, name: 'head' },
+                { geometry: new THREE.CylinderGeometry(1.2, 1.0, 2.5, 32), position: [0, 1.5, 0], color: 0x4ecdc4, name: 'torso' },
+                { geometry: new THREE.CylinderGeometry(0.3, 0.25, 2.0, 16), position: [-1.8, 2.0, 0], color: 0x45b7d1, name: 'leftArm', rotation: [0, 0, Math.PI / 6] },
+                { geometry: new THREE.CylinderGeometry(0.3, 0.25, 2.0, 16), position: [1.8, 2.0, 0], color: 0x45b7d1, name: 'rightArm', rotation: [0, 0, -Math.PI / 6] },
+                { geometry: new THREE.CylinderGeometry(0.4, 0.35, 2.5, 16), position: [-0.6, -1.5, 0], color: 0x96ceb4, name: 'leftLeg' },
+                { geometry: new THREE.CylinderGeometry(0.4, 0.35, 2.5, 16), position: [0.6, -1.5, 0], color: 0x96ceb4, name: 'rightLeg' },
+                { geometry: new THREE.SphereGeometry(0.3, 16, 16), position: [-0.2, 1.8, 0.5], color: 0xff4757, name: 'heart' },
+                { geometry: new THREE.SphereGeometry(0.25, 16, 16), position: [-0.5, 1.5, 0.3], color: 0xffa502, name: 'leftLung' },
+                { geometry: new THREE.SphereGeometry(0.25, 16, 16), position: [0.5, 1.5, 0.3], color: 0xffa502, name: 'rightLung' },
+                { geometry: new THREE.SphereGeometry(0.6, 16, 16), position: [0, 3.5, 0], color: 0xf368e0, name: 'brain' }
+            ];
+
+            const bodyMeshes = [];
+            bodyParts.forEach((part) => {
+                const material = new THREE.MeshPhongMaterial({
+                    color: part.color,
+                    transparent: true,
+                    opacity: 0.7,
+                    shininess: 100
+                });
+                
+                const mesh = new THREE.Mesh(part.geometry, material);
+                mesh.position.set(part.position[0], part.position[1], part.position[2]);
+                
+                if (part.rotation) {
+                    mesh.rotation.set(part.rotation[0], part.rotation[1], part.rotation[2]);
+                }
+                
+                mesh.userData = { name: part.name, originalColor: part.color };
+                anatomyGroup.add(mesh);
+                bodyMeshes.push(mesh);
+            });
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 5, 5);
+            scene.add(directionalLight);
+
+            const pointLight = new THREE.PointLight(0x00ffff, 0.5);
+            pointLight.position.set(-5, 3, 2);
+            scene.add(pointLight);
+
+            camera.position.set(0, 2, 8);
+            camera.lookAt(0, 1, 0);
+
+            animate();
+        }
+
+        function animate() {
+            time += 16;
+            
+            // Same animation as your component
+            anatomyGroup.rotation.y += 0.005;
+            anatomyGroup.rotation.x = Math.sin(time * 0.001) * 0.1;
+
+            const highlightCycle = 5000;
+            const cycleProgress = (time % highlightCycle) / highlightCycle;
+            const partIndex = Math.floor(cycleProgress * anatomyGroup.children.length);
+            
+            anatomyGroup.children.forEach((mesh, index) => {
+                if (mesh.material && mesh.material.opacity !== undefined) {
+                    if (index === partIndex) {
+                        mesh.material.opacity = 0.9;
+                        mesh.material.emissive.setHex(0x333333);
+                        mesh.scale.set(1.1, 1.1, 1.1);
+                    } else {
+                        mesh.material.opacity = 0.7;
+                        mesh.material.emissive.setHex(0x000000);
+                        mesh.scale.set(1, 1, 1);
+                    }
+                }
+            });
+
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+
+        function startRecording() {
+            const canvas = renderer.domElement;
+            const stream = canvas.captureStream(30); // 30 FPS
+            
+            // Try MP4 first, fall back to WebM
+            let mimeType = 'video/mp4';
+            if (!MediaRecorder.isTypeSupported('video/mp4')) {
+                mimeType = 'video/webm';
+            }
+            
+            mediaRecorder = new MediaRecorder(stream, { mimeType });
+            recordedChunks = [];
+            
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data.size > 0) {
+                    recordedChunks.push(event.data);
+                }
+            };
+            
+            mediaRecorder.start();
+            document.getElementById('status').textContent = 'Recording... (30 seconds max)';
+            
+            // Auto-stop after 30 seconds
+            setTimeout(() => {
+                if (mediaRecorder.state === 'recording') {
+                    stopRecording();
+                }
+            }, 30000);
+        }
+
+        function stopRecording() {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                document.getElementById('status').textContent = 'Recording stopped. Ready to download.';
+            }
+        }
+
+        function downloadVideo() {
+            if (recordedChunks.length === 0) {
+                alert('No recording available. Please record first.');
+                return;
+            }
+            
+            const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            
+            // Set filename based on the actual format
+            const extension = mediaRecorder.mimeType.includes('mp4') ? 'mp4' : 'webm';
+            a.href = url;
+            a.download = `neuronova-anatomy-animation.${extension}`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            document.getElementById('status').textContent = `Video downloaded as ${extension.toUpperCase()}! Ready to use.`;
+        }
+
+        // Initialize when page loads
+        window.onload = init;
+    </script>
+</body>
+</html> 

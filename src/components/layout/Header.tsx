@@ -83,9 +83,13 @@ export default function Header() {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center flex-shrink-0">
-              <Link href="/" className="flex items-center space-x-2">
-                <div className="h-8 w-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
-                  <span className="text-white font-bold text-sm">N</span>
+              <Link href="/" className="flex items-center space-x-3">
+                <div className="h-10 w-10 flex items-center justify-center">
+                  <img 
+                    src="/brain-logo.svg" 
+                    alt="NeuroNova Brain Logo" 
+                    className="h-8 w-8 drop-shadow-lg hover:scale-110 transition-transform duration-200"
+                  />
                 </div>
                 <span className="text-xl font-bold text-white">
                   Neuronova

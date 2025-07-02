@@ -38,7 +38,7 @@ try {
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const sortBy = searchParams.get('sortBy') as 'date' | 'citations' | 'reads' | 'impact' || 'date';
+  const sortBy = searchParams.get('sortBy') as 'date' | 'citations' | 'reads' | 'impact' | 'trending' || 'date';
   const limit = parseInt(searchParams.get('limit') || '12');
   const page = parseInt(searchParams.get('page') || '1');
   const category = searchParams.get('category') || undefined;
@@ -73,7 +73,8 @@ export async function GET(request: NextRequest) {
         sort = { citationCount: -1 };
         break;
       case 'impact':
-        sort = { trendingScore: -1 };
+      case 'trending':
+        sort = { trendingScore: -1, publicationDate: -1 };
         break;
       case 'reads':
         sort = { viewCount: -1 };

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAppSelector } from '@/lib/store/hooks';
-import AnatomyBackground from '@/components/ui/AnatomyBackground';
+import DynamicBackground from '@/components/ui/DynamicBackground';
 import BreakthroughTicker from '@/components/ui/BreakthroughTicker';
 import LiveActivityFeed from '@/components/ui/LiveActivityFeed';
 import { 
@@ -131,8 +131,8 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-slate-900 relative overflow-hidden">
-      {/* Animated Background */}
-      <AnatomyBackground />
+      {/* Dynamic Animated Background */}
+      <DynamicBackground />
       
       {/* Hero Section */}
       <section className="relative z-10 pt-20 pb-16">

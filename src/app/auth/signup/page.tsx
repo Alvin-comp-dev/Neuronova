@@ -184,8 +184,12 @@ export default function SignUpPage() {
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
-          <div className="mx-auto h-12 w-12 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center mb-4">
-            <span className="text-white font-bold text-xl">N</span>
+          <div className="mx-auto h-12 w-12 flex items-center justify-center mb-4">
+            <img 
+              src="/brain-logo.svg" 
+              alt="NeuroNova Brain Logo" 
+              className="h-12 w-12 drop-shadow-lg"
+            />
           </div>
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
             Join Neuronova

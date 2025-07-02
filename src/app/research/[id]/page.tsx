@@ -2,7 +2,33 @@
 
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeftIcon, ShareIcon, EyeIcon, CalendarIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, ShareIcon, EyeIcon, CalendarIcon, GlobeAltIcon, AcademicCapIcon, VideoCameraIcon, BookOpenIcon } from '@heroicons/react/24/outline';
+
+interface ExternalResearchResult {
+  id: string;
+  title: string;
+  authors: string[];
+  abstract: string;
+  source: string;
+  url: string;
+  publicationDate: string;
+  type: 'research' | 'webinar' | 'workshop' | 'article' | 'conference';
+  tags: string[];
+  citations?: number;
+  doi?: string;
+}
+
+interface ExpertContent {
+  id: string;
+  title: string;
+  type: 'webinar' | 'workshop' | 'article' | 'conference' | 'course';
+  url: string;
+  description: string;
+  author: string;
+  date: string;
+  source: string;
+  relevanceScore: number;
+}
 
 interface ResearchArticle {
   _id: string;
@@ -34,6 +60,11 @@ export default function ArticleDetailPage() {
   const [article, setArticle] = useState<ResearchArticle | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [externalPapers, setExternalPapers] = useState<ExternalResearchResult[]>([]);
+  const [expertContent, setExpertContent] = useState<ExpertContent[]>([]);
+  const [relatedTopics, setRelatedTopics] = useState<string[]>([]);
+  const [keyAuthors, setKeyAuthors] = useState<string[]>([]);
+  const [loadingExternal, setLoadingExternal] = useState(false);
 
   useEffect(() => {
     if (articleId) {
@@ -55,6 +86,9 @@ export default function ArticleDetailPage() {
       if (data.success && data.data) {
         setArticle(data.data);
         console.log('✅ Article loaded successfully:', data.data.title);
+        
+        // Fetch external research and expert content
+        fetchExternalContent(data.data);
       } else {
         console.log('❌ Article not found:', data.error);
         setError(data.error || 'Article not found');
@@ -64,6 +98,43 @@ export default function ArticleDetailPage() {
       setError('Failed to load article');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchExternalContent = async (article: ResearchArticle) => {
+    try {
+      setLoadingExternal(true);
+      console.log('🌐 Fetching external content for:', article.title);
+      
+      const response = await fetch('/api/search/external', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: article.title,
+          keywords: [],
+          categories: article.categories || [],
+          tags: article.tags || []
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        setExternalPapers(data.data.papers);
+        setExpertContent(data.data.expertContent);
+        setRelatedTopics(data.data.relatedTopics);
+        setKeyAuthors(data.data.keyAuthors);
+        
+        console.log('✅ External content loaded via API:', data.meta.resultCounts);
+      } else {
+        console.error('❌ API error:', data.error);
+      }
+    } catch (error) {
+      console.error('❌ Error fetching external content:', error);
+    } finally {
+      setLoadingExternal(false);
     }
   };
 
@@ -237,6 +308,168 @@ export default function ArticleDetailPage() {
             </div>
           )}
         </article>
+
+        {/* External Research & Expert Content */}
+        <div className="mt-8 space-y-8">
+          {/* Global Research Papers */}
+          <div className="bg-slate-800 rounded-xl p-8 shadow-lg">
+            <div className="flex items-center mb-6">
+              <GlobeAltIcon className="h-6 w-6 text-blue-400 mr-3" />
+              <h2 className="text-2xl font-bold text-white">Related Research Worldwide</h2>
+              {loadingExternal && (
+                <div className="ml-auto">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+                </div>
+              )}
+            </div>
+            
+            {externalPapers.length > 0 ? (
+              <div className="space-y-4">
+                {externalPapers.map((paper) => (
+                  <div key={paper.id} className="bg-slate-700 rounded-lg p-4 border border-slate-600 hover:border-blue-500 transition-colors">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-white hover:text-blue-400 transition-colors mb-2">
+                          <a href={paper.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                            {paper.title}
+                          </a>
+                        </h3>
+                        <div className="text-sm text-slate-400 mb-2">
+                          {paper.authors.slice(0, 3).join(', ')}
+                          {paper.authors.length > 3 && ` +${paper.authors.length - 3} more`}
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2 ml-4">
+                        <span className="px-2 py-1 bg-blue-600/20 text-blue-400 rounded-full text-xs">
+                          {paper.source}
+                        </span>
+                        {paper.citations && (
+                          <span className="px-2 py-1 bg-purple-600/20 text-purple-400 rounded-full text-xs">
+                            {paper.citations} citations
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <p className="text-slate-300 text-sm mb-3 line-clamp-2">
+                      {paper.abstract}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs text-slate-400">
+                        Published: {new Date(paper.publicationDate).toLocaleDateString()}
+                      </div>
+                      <div className="flex space-x-1">
+                        {paper.tags.slice(0, 3).map((tag, index) => (
+                          <span key={index} className="px-2 py-1 bg-slate-600 text-slate-300 text-xs rounded">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-slate-400">
+                {loadingExternal ? 'Searching global research databases...' : 'No related papers found'}
+              </div>
+            )}
+          </div>
+
+          {/* Expert Content - Webinars, Workshops, Courses */}
+          <div className="bg-slate-800 rounded-xl p-8 shadow-lg">
+            <div className="flex items-center mb-6">
+              <AcademicCapIcon className="h-6 w-6 text-green-400 mr-3" />
+              <h2 className="text-2xl font-bold text-white">Expert Resources & Learning</h2>
+            </div>
+            
+            {expertContent.length > 0 ? (
+              <div className="grid gap-6 md:grid-cols-2">
+                {expertContent.map((content) => (
+                  <div key={content.id} className="bg-slate-700 rounded-lg p-6 border border-slate-600 hover:border-green-500 transition-colors">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center">
+                        {content.type === 'webinar' && <VideoCameraIcon className="h-5 w-5 text-red-400 mr-2" />}
+                        {content.type === 'workshop' && <AcademicCapIcon className="h-5 w-5 text-blue-400 mr-2" />}
+                        {content.type === 'course' && <BookOpenIcon className="h-5 w-5 text-green-400 mr-2" />}
+                        {content.type === 'article' && <BookOpenIcon className="h-5 w-5 text-yellow-400 mr-2" />}
+                        {content.type === 'conference' && <GlobeAltIcon className="h-5 w-5 text-purple-400 mr-2" />}
+                        <span className="text-xs font-medium text-slate-400 uppercase tracking-wide">
+                          {content.type}
+                        </span>
+                      </div>
+                      <span className="px-2 py-1 bg-green-600/20 text-green-400 rounded-full text-xs">
+                        {content.relevanceScore}% match
+                      </span>
+                    </div>
+                    
+                    <h3 className="text-lg font-semibold text-white mb-2 hover:text-green-400 transition-colors">
+                      <a href={content.url} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                        {content.title}
+                      </a>
+                    </h3>
+                    
+                    <p className="text-slate-300 text-sm mb-3 line-clamp-2">
+                      {content.description}
+                    </p>
+                    
+                    <div className="flex items-center justify-between text-xs text-slate-400">
+                      <div>
+                        <span className="font-medium">{content.author}</span> • {content.source}
+                      </div>
+                      <div>
+                        {new Date(content.date).toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-slate-400">
+                {loadingExternal ? 'Finding expert resources...' : 'No expert resources found'}
+              </div>
+            )}
+          </div>
+
+          {/* Related Topics & Key Authors */}
+          <div className="grid gap-8 md:grid-cols-2">
+            {/* Related Topics */}
+            <div className="bg-slate-800 rounded-xl p-6 shadow-lg">
+              <h3 className="text-xl font-bold text-white mb-4">Related Topics</h3>
+              {relatedTopics.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {relatedTopics.map((topic, index) => (
+                    <span key={index} className="px-3 py-1 bg-blue-600 text-blue-100 text-sm rounded-full hover:bg-blue-500 transition-colors cursor-pointer">
+                      {topic}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-slate-400 text-sm">
+                  {loadingExternal ? 'Analyzing topics...' : 'No related topics found'}
+                </div>
+              )}
+            </div>
+
+            {/* Key Authors */}
+            <div className="bg-slate-800 rounded-xl p-6 shadow-lg">
+              <h3 className="text-xl font-bold text-white mb-4">Key Authors in Field</h3>
+              {keyAuthors.length > 0 ? (
+                <div className="space-y-2">
+                  {keyAuthors.map((author, index) => (
+                    <div key={index} className="flex items-center justify-between bg-slate-700 rounded-lg p-2">
+                      <span className="text-slate-300">{author}</span>
+                      <span className="text-xs text-slate-400">Expert</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-slate-400 text-sm">
+                  {loadingExternal ? 'Finding key authors...' : 'No key authors found'}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
