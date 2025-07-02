@@ -11,7 +11,7 @@ export default function Footer() {
     support: [
       { name: 'Help Center', href: '/help' },
       { name: 'Contact Us', href: '/contact' },
-      { name: 'API Documentation', href: '/docs' },
+      { name: 'API Documentation', href: '/api-docs' },
       { name: 'Status', href: '/status' },
     ],
     company: [

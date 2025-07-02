@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import {
   BookmarkIcon,
   EyeIcon,
@@ -41,6 +42,7 @@ interface SearchResult {
 }
 
 const SearchPage = () => {
+  const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -49,6 +51,16 @@ const SearchPage = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
   const [sortBy, setSortBy] = useState('relevance');
+
+  // Handle URL query parameters
+  useEffect(() => {
+    const queryFromUrl = searchParams.get('q');
+    if (queryFromUrl) {
+      setSearchQuery(queryFromUrl);
+      // Automatically search when coming from URL
+      fetchSearchResults(queryFromUrl, selectedCategory, sortBy);
+    }
+  }, [searchParams]);
 
   const categories = [
     { key: 'all', label: 'All Categories', icon: '📚' },
@@ -119,8 +131,29 @@ const SearchPage = () => {
       console.log('📊 Search results received:', data);
       
       if (data.success && data.data) {
-        setSearchResults(data.data);
-        setTotalResults(data.data.length);
+        // Deduplicate results by _id, doi, or title to prevent duplicate keys
+        const uniqueResults = data.data.reduce((acc: SearchResult[], current: SearchResult) => {
+          const existingIndex = acc.findIndex(result => 
+            result._id === current._id || 
+            (result.doi && current.doi && result.doi === current.doi) ||
+            (result.title.toLowerCase().trim() === current.title.toLowerCase().trim())
+          );
+          
+          if (existingIndex === -1) {
+            acc.push(current);
+          } else {
+            // If duplicate found, keep the one with more complete data
+            const existing = acc[existingIndex];
+            if (current.abstract?.length > existing.abstract?.length || 
+                current.authors?.length > existing.authors?.length) {
+              acc[existingIndex] = current;
+            }
+          }
+          return acc;
+        }, []);
+        
+        setSearchResults(uniqueResults);
+        setTotalResults(uniqueResults.length);
       } else {
         setSearchResults([]);
         setTotalResults(0);
@@ -550,8 +583,11 @@ const SearchPage = () => {
               ? 'grid grid-cols-1 lg:grid-cols-2 gap-6' 
               : 'space-y-6'
           }`}>
-            {searchResults.map(result => (
-              <ResultCard key={result._id} result={result} />
+            {searchResults.map((result, index) => (
+              <ResultCard 
+                key={`${result._id || result.doi || result.title}-${index}`} 
+                result={result} 
+              />
             ))}
           </div>
         )}

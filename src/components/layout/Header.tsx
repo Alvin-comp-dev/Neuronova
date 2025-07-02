@@ -24,6 +24,7 @@ export default function Header() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
   const { isDarkMode } = useAppSelector((state) => state.theme);
   const dispatch = useAppDispatch();
@@ -39,6 +40,20 @@ export default function Header() {
     router.push('/');
     setIsProfileMenuOpen(false);
     setIsMobileMenuOpen(false);
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
+    }
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch(e);
+    }
   };
 
   const handleThemeToggle = () => {
@@ -99,15 +114,24 @@ export default function Header() {
 
             {/* Desktop Search */}
             <div className="hidden md:flex flex-1 mx-8">
-              <div className="relative w-full">
+              <form onSubmit={handleSearch} className="relative w-full">
                 <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
                   placeholder="Search research papers, authors, topics..."
-                  className="w-full pl-10 pr-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-slate-400"
-                  onClick={() => router.push('/search')}
+                  className="w-full pl-10 pr-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-slate-400 transition-all duration-200"
                 />
-              </div>
+                <button
+                  type="submit"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-slate-400 hover:text-blue-400 transition-colors"
+                  title="Search"
+                >
+                  <MagnifyingGlassIcon className="w-4 h-4" />
+                </button>
+              </form>
             </div>
 
             {/* Desktop Navigation */}
@@ -244,15 +268,24 @@ export default function Header() {
 
           {/* Mobile Search */}
           <div className="md:hidden pb-4">
-            <div className="relative">
+            <form onSubmit={handleSearch} className="relative">
               <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleSearchKeyDown}
                 placeholder="Search research..."
-                className="w-full pl-10 pr-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-slate-400"
-                onClick={() => router.push('/search')}
+                className="w-full pl-10 pr-12 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-slate-400 transition-all duration-200"
               />
-            </div>
+              <button
+                type="submit"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 text-slate-400 hover:text-blue-400 transition-colors"
+                title="Search"
+              >
+                <MagnifyingGlassIcon className="w-4 h-4" />
+              </button>
+            </form>
           </div>
         </div>
       </header>

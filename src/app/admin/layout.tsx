@@ -18,13 +18,16 @@ import {
   Bars3Icon as Menu,
   XMarkIcon as X,
   ArrowRightOnRectangleIcon as LogOut,
-  AcademicCapIcon as AcademicCap
+  AcademicCapIcon as AcademicCap,
+  PlusIcon as Plus
 } from '@heroicons/react/24/outline';
 
 const navigation = [
   { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { name: 'Users', href: '/admin/users', icon: Users },
   { name: 'Expert Applications', href: '/admin/expert-applications', icon: AcademicCap },
+  { name: 'Career Management', href: '/admin/career-management', icon: Users },
+  { name: 'Job Management', href: '/admin/job-management', icon: Plus },
   { name: 'Content', href: '/admin/content', icon: FileText },
   { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
   { name: 'Security', href: '/admin/security', icon: Shield },
