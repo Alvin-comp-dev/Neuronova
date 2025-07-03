@@ -11,37 +11,24 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   generateEtags: false,
   
-  // Compiler optimizations
-  compiler: {
-    // Remove console logs in production
-    removeConsole: process.env.NODE_ENV === 'production' ? {
-      exclude: ['error', 'warn']
-    } : false,
-  },
+  // Compiler optimizations - disabled temporarily to fix errors
+  // compiler: {
+  //   // Remove console logs in production
+  //   removeConsole: process.env.NODE_ENV === 'production' ? {
+  //     exclude: ['error', 'warn']
+  //   } : false,
+  // },
   
-  // Experimental features for performance
+  // Experimental features for performance - simplified
   experimental: {
     // Optimize package imports for better tree shaking
     optimizePackageImports: [
       '@heroicons/react',
-      'lucide-react',
-      'framer-motion',
-      'react-chartjs-2',
-      'chart.js'
+      'lucide-react'
     ],
-    // Enable modern bundling
-    bundlePagesRouterDependencies: true,
-    // Optimize CSS
-    optimizeCss: true,
-    // Enable turbo mode for faster builds
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
-      },
-    },
+    // Disable problematic optimizations temporarily
+    // bundlePagesRouterDependencies: true,
+    // optimizeCss: true,
   },
   
   // TypeScript and ESLint config for production
@@ -62,48 +49,20 @@ const nextConfig: NextConfig = {
     'sharp'
   ],
   
-  // Webpack optimizations
+  // Webpack optimizations - simplified
   webpack: (config, { dev, isServer }) => {
-    // Production optimizations
-    if (!dev) {
-      // Enable webpack caching for faster builds
+    // Development optimizations
+    if (dev) {
+      config.cache = false; // Disable cache in development to avoid issues
+    } else {
+      // Production optimizations - simplified
       config.cache = {
         type: 'filesystem',
         buildDependencies: {
           config: [__filename],
         },
       };
-      
-      // Optimize bundle splitting
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: {
-          chunks: 'all',
-          cacheGroups: {
-            vendor: {
-              test: /[\\/]node_modules[\\/]/,
-              name: 'vendors',
-              chunks: 'all',
-            },
-            common: {
-              name: 'common',
-              minChunks: 2,
-              chunks: 'all',
-            },
-          },
-        },
-      };
-    } else {
-      // Development optimizations
-      config.cache = false; // Disable cache in development to avoid issues
     }
-    
-    // Optimize imports
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      // Optimize three.js imports
-      'three': 'three/build/three.module.js',
-    };
     
     return config;
   },
@@ -158,11 +117,6 @@ const nextConfig: NextConfig = {
             key: 'Referrer-Policy',
             value: 'origin-when-cross-origin'
           },
-          // Performance headers
-          {
-            key: 'X-DNS-Prefetch-Control',
-            value: 'on'
-          },
         ],
       },
       {
@@ -202,9 +156,6 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  
-  // Enable standalone output for Docker
-  output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
   
   // Compress output
   compress: true,
