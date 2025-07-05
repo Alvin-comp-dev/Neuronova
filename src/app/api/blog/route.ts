@@ -511,8 +511,6 @@ async function searchExternalBlogContent(query: string, preferredSources: string
   
   return results;
 }
-
-interface BlogPost {
   id: string;
   title: string;
   excerpt: string;

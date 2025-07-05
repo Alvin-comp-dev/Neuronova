@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { TrendingUp, Calendar, Users, BookOpen, ArrowRight, Filter, Eye, Star, Award, Zap } from 'lucide-react';
-import Link from 'next/link';
 import {
   Chart as ChartJS,
   CategoryScale,
