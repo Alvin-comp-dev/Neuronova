@@ -4,11 +4,5 @@
     "src/app/api/**/*.ts": {
       "maxDuration": 30
     }
-  },
-  "rewrites": [
-    {
-      "source": "/api/backend/(.*)",
-      "destination": "https://neuronova-backend.vercel.app/api/$1"
-    }
-  ]
+  }
 } 
