@@ -68,11 +68,13 @@ app.use('*', (_req: Request, res: Response) => {
   });
 });
 
-if (process.env['NODE_ENV'] !== 'test') {
+// For Vercel deployment
+if (process.env['NODE_ENV'] !== 'production') {
   app.listen(PORT, () => {
     console.log(`🚀 Server is running on port ${PORT}`);
     console.log(`🌍 Environment: ${process.env['NODE_ENV']}`);
   });
 }
 
-export default app; 
+// Export for Vercel
+module.exports = app; 
