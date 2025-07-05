@@ -264,8 +264,13 @@ UserProfileSchema.methods.addAchievement = function(achievementData: Partial<IAc
 
 // Method to calculate reputation points for achievements
 UserProfileSchema.methods.getAchievementPoints = function(level: string) {
-  const points = { bronze: 10, silver: 25, gold: 50, platinum: 100 };
-  return points[level as keyof typeof points] || 0;
+  const points: { [key: string]: number } = { bronze: 10, silver: 25, gold: 50, platinum: 100 };
+  return points[level] || 0;
+};
+
+// Add type for parameter a
+export const sortByDate = (a: { date: Date }, b: { date: Date }): number => {
+  return new Date(b.date).getTime() - new Date(a.date).getTime();
 };
 
 export default mongoose.models.UserProfile || mongoose.model<IUserProfile>('UserProfile', UserProfileSchema); 

@@ -1,6 +1,25 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import Analytics from '../models/Analytics';
 import { AuthRequest } from '../middleware/auth';
+
+interface DeviceStats {
+  type: string;
+  count: number;
+  percentage: number;
+}
+
+interface DailyStats {
+  date: string;
+  pageViews: number;
+  uniqueUsers: number;
+}
+
+interface UserEngagement {
+  userId: string;
+  totalEvents: number;
+  uniqueEvents: number;
+  sessionDuration: number;
+}
 
 // Track analytics event
 export const trackEvent = async (req: Request, res: Response) => {
@@ -391,4 +410,175 @@ declare module '../models/Analytics' {
 
 (Analytics as any).getConversionFunnel = async (start: Date, end: Date) => {
   return { steps: [] };
+};
+
+// Get analytics dashboard data
+export const getDashboardStats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { startDate, endDate } = req.query;
+    const start = new Date(startDate as string || new Date().setDate(new Date().getDate() - 30));
+    const end = new Date(endDate as string || new Date());
+
+    // Get real-time stats
+    const realTimeStats = await Analytics.aggregate([
+      {
+        $match: {
+          timestamp: { $gte: new Date(Date.now() - 5 * 60 * 1000) } // Last 5 minutes
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          activeUsers: { $addToSet: '$userId' },
+          totalEvents: { $sum: 1 }
+        }
+      }
+    ]);
+
+    // Get page views over time
+    const pageViews = await Analytics.aggregate([
+      {
+        $match: {
+          category: 'page_view',
+          timestamp: { $gte: start, $lte: end }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$timestamp' },
+            month: { $month: '$timestamp' },
+            day: { $dayOfMonth: '$timestamp' }
+          },
+          count: { $sum: 1 },
+          uniqueUsers: { $addToSet: '$userId' }
+        }
+      },
+      {
+        $project: {
+          date: {
+            $dateFromParts: {
+              year: '$_id.year',
+              month: '$_id.month',
+              day: '$_id.day'
+            }
+          },
+          pageViews: '$count',
+          uniqueUsers: { $size: '$uniqueUsers' }
+        }
+      },
+      { $sort: { date: 1 } }
+    ]);
+
+    // Get top pages
+    const topPages = await Analytics.aggregate([
+      {
+        $match: {
+          category: 'page_view',
+          timestamp: { $gte: start, $lte: end }
+        }
+      },
+      {
+        $group: {
+          _id: '$data.page',
+          views: { $sum: 1 },
+          uniqueUsers: { $addToSet: '$userId' }
+        }
+      },
+      {
+        $project: {
+          page: '$_id',
+          views: 1,
+          uniqueUsers: { $size: '$uniqueUsers' }
+        }
+      },
+      { $sort: { views: -1 } },
+      { $limit: 10 }
+    ]);
+
+    // Get device stats
+    const deviceStats = await Analytics.aggregate([
+      {
+        $match: {
+          timestamp: { $gte: start, $lte: end },
+          'device.type': { $exists: true }
+        }
+      },
+      {
+        $group: {
+          _id: '$device.type',
+          count: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const totalDevices = deviceStats.reduce((sum: number, device: DeviceStats) => sum + device.count, 0);
+    const deviceDistribution = deviceStats.map((device: DeviceStats) => ({
+      type: device._id,
+      count: device.count,
+      percentage: (device.count / totalDevices) * 100
+    }));
+
+    // Get user engagement metrics
+    const userEngagement = await Analytics.aggregate([
+      {
+        $match: {
+          timestamp: { $gte: start, $lte: end },
+          userId: { $exists: true }
+        }
+      },
+      {
+        $group: {
+          _id: '$userId',
+          totalEvents: { $sum: 1 },
+          uniqueEvents: { $addToSet: '$event' },
+          firstSeen: { $min: '$timestamp' },
+          lastSeen: { $max: '$timestamp' }
+        }
+      },
+      {
+        $project: {
+          userId: '$_id',
+          totalEvents: 1,
+          uniqueEvents: { $size: '$uniqueEvents' },
+          sessionDuration: {
+            $divide: [
+              { $subtract: ['$lastSeen', '$firstSeen'] },
+              1000 * 60 // Convert to minutes
+            ]
+          }
+        }
+      }
+    ]);
+
+    // Calculate daily active users
+    const dailyActiveUsers = pageViews.reduce((sum: number, day: DailyStats) => sum + day.uniqueUsers, 0) / pageViews.length;
+
+    // Calculate average session duration
+    const avgSessionDuration = userEngagement.reduce((sum: number, user: UserEngagement) => sum + user.sessionDuration, 0) / userEngagement.length;
+
+    res.json({
+      success: true,
+      data: {
+        realTime: {
+          activeUsers: realTimeStats[0]?.activeUsers?.length || 0,
+          eventsPerMinute: realTimeStats[0]?.totalEvents || 0
+        },
+        overview: {
+          totalPageViews: pageViews.reduce((sum: number, day: DailyStats) => sum + day.pageViews, 0),
+          averageDailyUsers: Math.round(dailyActiveUsers),
+          averageSessionDuration: Math.round(avgSessionDuration),
+          bounceRate: 0 // TODO: Implement bounce rate calculation
+        },
+        trends: {
+          pageViews,
+          topPages,
+          deviceDistribution,
+          userEngagement: userEngagement.slice(0, 10) // Limit to top 10 users
+        }
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
 }; 

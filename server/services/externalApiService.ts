@@ -1,6 +1,6 @@
 import axios from 'axios';
 import * as xml2js from 'xml2js';
-import { cacheService } from './cacheService';
+import { CacheService } from './cacheService';
 import { rateLimitService } from './rateLimitService';
 
 interface PubMedArticle {
@@ -31,6 +31,8 @@ interface BioRxivArticle {
   date: string;
   category: string;
 }
+
+const cacheService = CacheService.getInstance();
 
 export class ExternalApiService {
   private static readonly PUBMED_BASE_URL = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils';

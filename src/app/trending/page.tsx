@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { TrendingUp, Calendar, Users, BookOpen, ArrowRight, Filter, Eye, Star, Award, Zap } from 'lucide-react';
+import Link from 'next/link';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -64,171 +65,171 @@ export default function TrendingPage() {
   // Mock data for Top 10 Breakthroughs of the Week with images
   const mockBreakthroughs: TrendingBreakthrough[] = [
     {
-      _id: '1',
-      title: 'Revolutionary Brain-Computer Interface Enables Paralyzed Patients to Control Robotic Arms',
-      authors: ['Dr. Sarah Chen', 'Prof. Michael Rodriguez', 'Dr. Lisa Johnson'],
-      journal: 'Nature Neuroscience',
-      publicationDate: '2024-06-15T00:00:00Z',
-      summary: 'Breakthrough BCI technology allows direct neural control of robotic limbs with 96% accuracy',
-      trendingScore: 98.5,
+      _id: '507f1f77bcf86cd799439011',
+      title: 'Brain-Computer Interface Enables Paralyzed Patients to Control Robotic Arms',
+      authors: ['Prof. Elena Vasquez', 'Dr. Marcus Johnson', 'Dr. Priya Patel', 'Dr. Thomas Wilson'],
+      journal: 'Nature Medicine',
+      publicationDate: '2024-02-12T00:00:00Z',
+      summary: 'Brain-computer interfaces (BCIs) hold tremendous promise for restoring motor function in paralyzed individuals. This study reports the development and clinical testing of a high-resolution BCI system that enables tetraplegic patients to control robotic arms with unprecedented precision.',
+      trendingScore: 98,
       views: 45230,
-      citations: 234,
+      citations: 91,
       category: 'Neurotech',
       type: 'research',
-      tags: ['BCI', 'Neural Interface', 'Robotics'],
+      tags: ['brain-computer interface', 'paralysis', 'motor cortex', 'robotic prosthetics', 'neural decoding'],
       rank: 1,
       weeklyGrowth: 340,
       image: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=250&fit=crop'
     },
     {
-      _id: '2',
-      title: 'CRISPR 3.0 Achieves Unprecedented Precision in Gene Editing for Huntington\'s Disease',
-      authors: ['Dr. James Wilson', 'Prof. Emily Richardson'],
-      journal: 'Cell',
-      publicationDate: '2024-06-14T00:00:00Z',
-      summary: 'Next-generation CRISPR technology shows 99.7% accuracy in correcting Huntington\'s mutations',
-      trendingScore: 95.2,
+      _id: '507f1f77bcf86cd799439012',
+      title: 'Machine Learning Predicts Alzheimer\'s Disease 10 Years Before Symptoms',
+      authors: ['Dr. Linda Chen', 'Prof. Robert Johnson', 'Dr. Yuki Sato', 'Dr. Elena Popov'],
+      journal: 'Nature Medicine',
+      publicationDate: '2024-02-15T00:00:00Z',
+      summary: 'Early detection of Alzheimer\'s disease is crucial for implementing preventive interventions and improving patient outcomes. This study developed and validated a machine learning model capable of predicting Alzheimer\'s disease onset up to 10 years before clinical symptoms appear.',
+      trendingScore: 96,
       views: 38940,
-      citations: 189,
-      category: 'Gene Therapy',
+      citations: 85,
+      category: 'AI in Healthcare',
       type: 'research',
-      tags: ['CRISPR', 'Gene Editing', 'Huntington\'s'],
+      tags: ['machine learning', 'Alzheimer\'s prediction', 'early detection', 'neuroimaging', 'biomarkers'],
       rank: 2,
       weeklyGrowth: 285,
       image: 'https://images.unsplash.com/photo-1576086213369-97a306d36557?w=400&h=250&fit=crop'
     },
     {
-      _id: '3',
-      title: 'AI System Detects Alzheimer\'s 15 Years Before Symptoms with 94% Accuracy',
-      authors: ['Dr. Maria Garcia', 'Dr. David Kim'],
-      journal: 'Science Translational Medicine',
-      publicationDate: '2024-06-13T00:00:00Z',
-      summary: 'Machine learning model analyzes retinal scans to predict Alzheimer\'s decades in advance',
-      trendingScore: 92.8,
+      _id: '507f1f77bcf86cd799439013',
+      title: 'Stem Cell Therapy Restores Vision in Macular Degeneration Patients',
+      authors: ['Prof. Catherine Wong', 'Dr. Ahmed Hassan', 'Dr. Nora Johansson', 'Dr. Paul Martinez'],
+      journal: 'The Lancet',
+      publicationDate: '2024-01-30T00:00:00Z',
+      summary: 'Age-related macular degeneration (AMD) is a leading cause of blindness in older adults. This phase II clinical trial evaluated the safety and efficacy of embryonic stem cell-derived retinal pigment epithelium (RPE) transplantation in patients with advanced dry AMD.',
+      trendingScore: 93,
       views: 42100,
-      citations: 156,
-      category: 'AI in Healthcare',
+      citations: 67,
+      category: 'Regenerative Medicine',
       type: 'research',
-      tags: ['AI', 'Alzheimer\'s', 'Early Detection'],
+      tags: ['stem cell therapy', 'macular degeneration', 'retinal transplantation', 'vision restoration', 'RPE cells'],
       rank: 3,
       weeklyGrowth: 267,
       image: 'https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=400&h=250&fit=crop'
     },
     {
-      _id: '4',
-      title: 'Bioengineered Heart Tissue Successfully Regenerates After Heart Attack in Clinical Trial',
-      authors: ['Prof. Robert Taylor', 'Dr. Anna Kowalski'],
-      journal: 'The Lancet',
-      publicationDate: '2024-06-12T00:00:00Z',
-      summary: 'Lab-grown cardiac patches restore heart function in 78% of heart attack patients',
-      trendingScore: 89.4,
+      _id: '507f1f77bcf86cd799439014',
+      title: 'Personalized Medicine Approach to Cancer Immunotherapy',
+      authors: ['Dr. Kevin Zhang', 'Prof. Isabella Rodriguez', 'Dr. Michael O\'Connor', 'Dr. Fatima Al-Rashid'],
+      journal: 'Nature Cancer',
+      publicationDate: '2024-02-05T00:00:00Z',
+      summary: 'Cancer immunotherapy has revolutionized treatment outcomes for many patients, but response rates vary significantly across individuals. This study presents a comprehensive personalized medicine framework that combines genomic profiling, immune phenotyping, and AI-driven prediction models to optimize immunotherapy selection.',
+      trendingScore: 90,
       views: 35670,
-      citations: 143,
-      category: 'Regenerative Medicine',
+      citations: 73,
+      category: 'Immunotherapy',
       type: 'research',
-      tags: ['Heart', 'Regeneration', 'Clinical Trial'],
+      tags: ['personalized medicine', 'cancer immunotherapy', 'genomics', 'biomarkers', 'precision oncology'],
       rank: 4,
       weeklyGrowth: 198,
-      image: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=400&h=250&fit=crop'
+      image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&h=250&fit=crop'
     },
     {
-      _id: '5',
-      title: 'Quantum-Enhanced MRI Reveals Brain Activity at Unprecedented Resolution',
-      authors: ['Dr. Thomas Anderson', 'Prof. Jennifer Lee'],
-      journal: 'Nature',
-      publicationDate: '2024-06-11T00:00:00Z',
-      summary: 'Quantum sensors enable real-time imaging of individual neurons in living brain tissue',
-      trendingScore: 87.1,
+      _id: '507f1f77bcf86cd799439015',
+      title: 'Neural Mechanisms of Memory Consolidation During Sleep',
+      authors: ['Dr. Sarah Chen', 'Prof. Michael Rodriguez', 'Dr. Lisa Wang', 'Dr. James Thompson'],
+      journal: 'Nature Neuroscience',
+      publicationDate: '2024-01-15T00:00:00Z',
+      summary: 'Sleep plays a crucial role in memory consolidation, with different sleep stages contributing to the stabilization of various types of memories. This study investigates the neural mechanisms underlying memory consolidation during slow-wave sleep and REM sleep phases.',
+      trendingScore: 89,
       views: 28940,
-      citations: 127,
-      category: 'Medical Imaging',
+      citations: 45,
+      category: 'Neuroscience',
       type: 'research',
-      tags: ['Quantum', 'MRI', 'Brain Imaging'],
+      tags: ['memory consolidation', 'sleep', 'EEG', 'hippocampus', 'theta oscillations', 'REM sleep'],
       rank: 5,
       weeklyGrowth: 156,
       image: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=250&fit=crop&crop=center'
     },
     {
-      _id: '6',
-      title: 'Breakthrough Immunotherapy Eliminates Solid Tumors in 89% of Patients',
-      authors: ['Dr. Patricia Kim', 'Prof. Michael Chen'],
-      journal: 'Nature Medicine',
-      publicationDate: '2024-06-10T00:00:00Z',
-      summary: 'Novel CAR-T cell therapy shows remarkable success against previously untreatable cancers',
-      trendingScore: 84.7,
+      _id: '507f1f77bcf86cd799439016',
+      title: 'CRISPR-Cas9 Gene Therapy for Huntington\'s Disease: A Phase I Clinical Trial',
+      authors: ['Dr. Maria Gonzalez', 'Prof. David Kim', 'Dr. Rachel Adams', 'Dr. Steven Clark'],
+      journal: 'New England Journal of Medicine',
+      publicationDate: '2024-02-03T00:00:00Z',
+      summary: 'Huntington\'s disease (HD) is a fatal neurodegenerative disorder caused by an expanded CAG repeat in the huntingtin gene. This phase I clinical trial evaluates the safety and preliminary efficacy of CRISPR-Cas9 gene editing therapy targeting the mutant huntingtin allele.',
+      trendingScore: 95,
       views: 31250,
-      citations: 118,
-      category: 'Immunotherapy',
+      citations: 78,
+      category: 'Gene Therapy',
       type: 'research',
-      tags: ['Cancer', 'CAR-T', 'Immunotherapy'],
+      tags: ['CRISPR', 'Huntington\'s disease', 'gene therapy', 'clinical trial', 'neuroprotection'],
       rank: 6,
       weeklyGrowth: 142,
       image: 'https://images.unsplash.com/photo-1582719471384-894fbb16e074?w=400&h=250&fit=crop'
     },
     {
-      _id: '7',
-      title: 'Lab-Grown Retinal Cells Restore Vision in Blind Patients',
-      authors: ['Dr. Jennifer Martinez', 'Prof. David Wilson'],
-      journal: 'Cell Stem Cell',
-      publicationDate: '2024-06-09T00:00:00Z',
-      summary: 'Stem cell-derived retinal patches successfully restore partial vision in clinical trials',
-      trendingScore: 82.3,
+      _id: '507f1f77bcf86cd799439017',
+      title: 'AI-Powered Drug Discovery Identifies Novel Alzheimer\'s Therapeutics',
+      authors: ['Dr. Jennifer Liu', 'Prof. Alexander Petrov', 'Dr. Yuki Tanaka', 'Dr. Robert Brown'],
+      journal: 'Science Translational Medicine',
+      publicationDate: '2024-01-28T00:00:00Z',
+      summary: 'This study presents a novel artificial intelligence platform that integrates multi-omics data, molecular dynamics simulations, and machine learning algorithms to identify promising therapeutic targets and compounds for Alzheimer\'s disease.',
+      trendingScore: 87,
       views: 27890,
-      citations: 102,
-      category: 'Regenerative Medicine',
+      citations: 62,
+      category: 'Drug Discovery',
       type: 'research',
-      tags: ['Vision', 'Stem Cells', 'Retina'],
+      tags: ['artificial intelligence', 'drug discovery', 'Alzheimer\'s disease', 'machine learning', 'amyloid-beta'],
       rank: 7,
       weeklyGrowth: 128,
       image: 'https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=400&h=250&fit=crop&crop=top'
     },
     {
-      _id: '8',
-      title: 'Smart Contact Lenses Monitor Glucose Levels in Real-Time',
-      authors: ['Dr. Alex Thompson', 'Prof. Sarah Lee'],
-      journal: 'Science Advances',
-      publicationDate: '2024-06-08T00:00:00Z',
-      summary: 'Wireless biosensor contact lenses provide continuous glucose monitoring for diabetics',
-      trendingScore: 79.8,
+      _id: '507f1f77bcf86cd799439018',
+      title: 'Optogenetics Reveals Neural Circuits Underlying Depression',
+      authors: ['Dr. Amanda Foster', 'Prof. Hiroshi Nakamura', 'Dr. Carlos Mendez', 'Dr. Sophie Laurent'],
+      journal: 'Cell',
+      publicationDate: '2024-01-20T00:00:00Z',
+      summary: 'This study employs optogenetic techniques to investigate the role of specific neural circuits in depression-like behaviors in mouse models. We used channelrhodopsin-2 to selectively activate or inhibit neurons while monitoring behavioral responses.',
+      trendingScore: 82,
       views: 24560,
-      citations: 94,
-      category: 'Medical Devices',
+      citations: 56,
+      category: 'Neuroscience',
       type: 'research',
-      tags: ['Diabetes', 'Biosensors', 'Wearables'],
+      tags: ['optogenetics', 'depression', 'neural circuits', 'prefrontal cortex', 'mood disorders'],
       rank: 8,
       weeklyGrowth: 115,
       image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&h=250&fit=crop'
     },
     {
-      _id: '9',
-      title: 'Nanotechnology Drug Delivery System Crosses Blood-Brain Barrier',
-      authors: ['Dr. Rachel Green', 'Prof. Mark Johnson'],
-      journal: 'Nature Nanotechnology',
-      publicationDate: '2024-06-07T00:00:00Z',
-      summary: 'Engineered nanoparticles successfully deliver Alzheimer\'s drugs directly to brain tissue',
-      trendingScore: 77.5,
+      _id: '507f1f77bcf86cd799439019',
+      title: 'Microbiome Modulation Improves Parkinson\'s Disease Symptoms',
+      authors: ['Dr. Patricia Kim', 'Prof. Giovanni Rossi', 'Dr. Ana Martinez', 'Dr. John Smith'],
+      journal: 'Gut',
+      publicationDate: '2024-01-25T00:00:00Z',
+      summary: 'This randomized controlled trial investigated whether targeted microbiome modulation could improve motor and non-motor symptoms in Parkinson\'s patients through the gut-brain axis.',
+      trendingScore: 76,
       views: 22340,
-      citations: 87,
-      category: 'Drug Discovery',
+      citations: 39,
+      category: 'Microbiome',
       type: 'research',
-      tags: ['Nanotechnology', 'Drug Delivery', 'Alzheimer\'s'],
+      tags: ['microbiome', 'Parkinson\'s disease', 'gut-brain axis', 'probiotics', 'neuroinflammation'],
       rank: 9,
       weeklyGrowth: 103,
       image: 'https://images.unsplash.com/photo-1576086213369-97a306d36557?w=400&h=250&fit=crop&crop=top'
     },
     {
-      _id: '10',
-      title: 'Artificial Synapses Enable Memory Restoration in Brain-Injured Patients',
-      authors: ['Dr. Kevin Brown', 'Prof. Lisa Davis'],
-      journal: 'Nature Biomedical Engineering',
-      publicationDate: '2024-06-06T00:00:00Z',
-      summary: 'Silicon-based neural implants successfully restore memory formation in traumatic brain injury patients',
-      trendingScore: 75.2,
+      _id: '507f1f77bcf86cd799439020',
+      title: 'Virtual Reality Therapy for Post-Traumatic Stress Disorder',
+      authors: ['Dr. Rebecca Taylor', 'Prof. James Anderson', 'Dr. Maria Santos', 'Dr. David Lee'],
+      journal: 'American Journal of Psychiatry',
+      publicationDate: '2024-02-08T00:00:00Z',
+      summary: 'This study evaluates the efficacy of immersive virtual reality exposure therapy (VRET) for treating combat-related PTSD, showing superior results to traditional therapy.',
+      trendingScore: 71,
       views: 19870,
-      citations: 79,
-      category: 'Neurotech',
+      citations: 44,
+      category: 'Mental Health',
       type: 'research',
-      tags: ['Memory', 'Neural Implants', 'TBI'],
+      tags: ['virtual reality', 'PTSD', 'exposure therapy', 'trauma treatment', 'veterans'],
       rank: 10,
       weeklyGrowth: 92,
       image: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=250&fit=crop&crop=bottom'
@@ -368,6 +369,28 @@ export default function TrendingPage() {
       }
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="text-white text-lg">Loading trending breakthroughs...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!breakthroughs || breakthroughs.length === 0) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-white mb-4">No Breakthroughs Found</h1>
+          <p className="text-slate-400">Please try again later or check back soon for new research.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-900">
@@ -533,9 +556,11 @@ export default function TrendingPage() {
                   <div className="flex-1 p-6">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-white hover:text-blue-400 cursor-pointer transition-colors mb-2 line-clamp-2">
-                          {breakthrough.title}
-                        </h3>
+                        <Link href={`/research/${breakthrough._id}`}>
+                          <h3 className="text-lg font-semibold text-white hover:text-blue-400 cursor-pointer transition-colors mb-2 line-clamp-2">
+                            {breakthrough.title}
+                          </h3>
+                        </Link>
                         <div className="text-sm text-slate-400 mb-3">
                           By {breakthrough.authors.slice(0, 2).join(', ')}
                           {breakthrough.authors.length > 2 && ` +${breakthrough.authors.length - 2} more`} • {breakthrough.journal}

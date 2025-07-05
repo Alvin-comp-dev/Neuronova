@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectMongoose } from '@/lib/mongodb';
-import { UserModel } from '@/lib/models/User';
+import { UserService } from '@/lib/models/User';
 import { ResearchModel } from '@/lib/models/Research';
 import jwt from 'jsonwebtoken';
 
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
     await connectMongoose();
 
     // Get user with bookmarks
-    const user = await UserModel.findById(userId);
+    const user = await UserService.findById(userId);
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'User not found' },
@@ -178,7 +178,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user
-    const user = await UserModel.findById(userId);
+    const user = await UserService.findById(userId);
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'User not found' },
@@ -227,7 +227,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Save user
-    await UserModel.update(userId, { bookmarks: user.bookmarks });
+    await UserService.update(userId, { bookmarks: user.bookmarks });
 
     return NextResponse.json({
       success: true,
@@ -261,7 +261,7 @@ export async function DELETE(request: NextRequest) {
 
     await connectMongoose();
 
-    const user = await UserModel.findById(userId);
+    const user = await UserService.findById(userId);
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'User not found' },
@@ -271,7 +271,7 @@ export async function DELETE(request: NextRequest) {
 
     // Clear bookmarks
     const bookmarkCount = user.bookmarks?.length || 0;
-    await UserModel.update(userId, { bookmarks: [] });
+    await UserService.update(userId, { bookmarks: [] });
 
     return NextResponse.json({
       success: true,
@@ -288,4 +288,4 @@ export async function DELETE(request: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}

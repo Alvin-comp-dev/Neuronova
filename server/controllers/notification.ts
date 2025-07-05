@@ -41,7 +41,7 @@ export const getNotifications = async (req: AuthRequest, res: Response) => {
       .skip(Number(offset));
 
     const total = await Notification.countDocuments(query);
-    const unreadCount = await Notification.getUnreadCount(userId);
+    const unreadCount = await Notification.countDocuments({ recipient: userId, status: 'unread' });
 
     res.json({
       success: true,
@@ -69,7 +69,7 @@ export const getNotifications = async (req: AuthRequest, res: Response) => {
 export const getUnreadCount = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
-    const count = await Notification.getUnreadCount(userId);
+    const count = await Notification.countDocuments({ recipient: userId, status: 'unread' });
 
     res.json({
       success: true,
@@ -124,7 +124,10 @@ export const markAsRead = async (req: AuthRequest, res: Response) => {
 export const markAllAsRead = async (req: AuthRequest, res: Response) => {
   try {
     const userId = req.user!.id;
-    const result = await Notification.markAllAsRead(userId);
+    const result = await Notification.updateMany(
+      { recipient: userId, status: 'unread' },
+      { status: 'read', readAt: new Date() }
+    );
 
     res.json({
       success: true,
@@ -276,7 +279,9 @@ export const updatePreferences = async (req: AuthRequest, res: Response) => {
 // Create notification (internal use)
 export const createNotification = async (notificationData: any) => {
   try {
-    return await Notification.createNotification(notificationData);
+    const notification = new Notification(notificationData);
+    await notification.save();
+    return notification;
   } catch (error) {
     console.error('Create notification error:', error);
     throw error;

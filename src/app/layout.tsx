@@ -5,6 +5,7 @@ import { Providers } from "@/context/Providers";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import { PerformanceMonitor } from "@/components/common/PerformanceMonitor";
+import { ClientOnlyWithErrorBoundary } from "@/components/common/ClientOnly";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -67,7 +68,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
         {/* Preload critical resources */}
         <link rel="preload" href="/brain-logo.svg" as="image" type="image/svg+xml" />
@@ -82,7 +83,7 @@ export default function RootLayout({
         {/* Theme color */}
         <meta name="theme-color" content="#1e293b" />
       </head>
-      <body className={`${inter.className} antialiased`}>
+      <body className={`${inter.className} antialiased`} suppressHydrationWarning>
         <Providers>
           <div className="flex flex-col min-h-screen">
             <Header />
@@ -93,7 +94,9 @@ export default function RootLayout({
           </div>
           {/* Performance monitoring - only in development or when enabled */}
           {(process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_ENABLE_PERF_MONITORING === 'true') && (
-            <PerformanceMonitor />
+            <ClientOnlyWithErrorBoundary>
+              <PerformanceMonitor />
+            </ClientOnlyWithErrorBoundary>
           )}
         </Providers>
       </body>

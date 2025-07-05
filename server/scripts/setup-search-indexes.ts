@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import path from 'path';
 import mongoose from 'mongoose';
+import { IndexDirection, IndexSpecification } from 'mongodb';
 
 // Load environment variables
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
@@ -70,26 +71,26 @@ async function setupSearchIndexes() {
     // Create compound indexes for common query patterns
     console.log('Creating compound indexes...');
     
-    const compoundIndexes = [
-      { index: { categories: 1, publicationDate: -1 }, name: 'categories_date' },
-      { index: { trendingScore: -1, publicationDate: -1 }, name: 'trending_date' },
-      { index: { citationCount: -1, publicationDate: -1 }, name: 'citations_date' },
-      { index: { status: 1, categories: 1, publicationDate: -1 }, name: 'status_categories_date' },
-      { index: { 'metrics.impactScore': -1, publicationDate: -1 }, name: 'impact_date' },
-      { index: { 'authors.name': 1, publicationDate: -1 }, name: 'authors_date' },
-      { index: { 'source.name': 1, publicationDate: -1 }, name: 'source_date' },
-      { index: { keywords: 1, trendingScore: -1 }, name: 'keywords_trending' }
+    const compoundIndexes: IndexSpecification[] = [
+      { categories: 1, publicationDate: -1 },
+      { trendingScore: -1, publicationDate: -1 },
+      { citationCount: -1 },
+      { status: 1 },
+      { 'metrics.impactScore': -1 },
+      { 'authors.name': 1 },
+      { 'source.name': 1 },
+      { keywords: 1 }
     ];
 
-    for (const { index, name } of compoundIndexes) {
+    for (const index of compoundIndexes) {
       try {
-        await Research.collection.createIndex(index, { name });
-        console.log(`✅ Created compound index: ${name}`);
+        await Research.collection.createIndex(index, { name: index.name });
+        console.log(`✅ Created compound index: ${index.name}`);
       } catch (error: any) {
         if (error.code === 85) {
-          console.log(`⚠️ Index ${name} already exists with different options`);
+          console.log(`⚠️ Index ${index.name} already exists with different options`);
         } else {
-          console.log(`⚠️ Could not create index ${name}:`, error.message);
+          console.log(`⚠️ Could not create index ${index.name}:`, error.message);
         }
       }
     }
@@ -97,33 +98,32 @@ async function setupSearchIndexes() {
     // Create single field indexes
     console.log('Creating single field indexes...');
     
-    const singleIndexes = [
-      { index: { doi: 1 }, options: { unique: true, sparse: true }, name: 'doi' },
-      { index: { pmid: 1 }, options: { unique: true, sparse: true }, name: 'pmid' },
-      { index: { arxivId: 1 }, options: { unique: true, sparse: true }, name: 'arxivId' },
-      { index: { publicationDate: -1 }, options: {}, name: 'publicationDate' },
-      { index: { citationCount: -1 }, options: {}, name: 'citationCount' },
-      { index: { viewCount: -1 }, options: {}, name: 'viewCount' },
-      { index: { bookmarkCount: -1 }, options: {}, name: 'bookmarkCount' },
-      { index: { trendingScore: -1 }, options: {}, name: 'trendingScore' },
-      { index: { status: 1 }, options: {}, name: 'status' },
-      { index: { categories: 1 }, options: {}, name: 'categories' },
-      { index: { keywords: 1 }, options: {}, name: 'keywords' },
-      { index: { 'authors.name': 1 }, options: {}, name: 'authors.name' },
-      { index: { 'source.name': 1 }, options: {}, name: 'source.name' },
-      { index: { 'source.type': 1 }, options: {}, name: 'source.type' },
-      { index: { 'metrics.impactScore': -1 }, options: {}, name: 'metrics.impactScore' }
+    const uniqueIndexes: IndexSpecification[] = [
+      { doi: 1 },
+      { pmid: 1 },
+      { arxivId: 1 },
+      { publicationDate: -1 },
+      { citationCount: -1 },
+      { viewCount: -1 },
+      { bookmarkCount: -1 },
+      { trendingScore: -1 },
+      { status: 1 },
+      { title: 'text', abstract: 'text' },
+      { 'authors.name': 1 },
+      { 'source.name': 1 },
+      { 'source.type': 1 },
+      { 'metrics.impactScore': -1 }
     ];
 
-    for (const { index, options, name } of singleIndexes) {
+    for (const index of uniqueIndexes) {
       try {
-        await Research.collection.createIndex(index, options);
-        console.log(`✅ Created single field index: ${name}`);
+        await Research.collection.createIndex(index, { unique: true, sparse: true });
+        console.log(`✅ Created single field index: ${index.name}`);
       } catch (error: any) {
         if (error.code === 85 || error.code === 11000) {
-          console.log(`⚠️ Index ${name} already exists`);
+          console.log(`⚠️ Index ${index.name} already exists`);
         } else {
-          console.log(`⚠️ Could not create index ${name}:`, error.message);
+          console.log(`⚠️ Could not create index ${index.name}:`, error.message);
         }
       }
     }
@@ -169,8 +169,8 @@ async function setupSearchIndexes() {
     console.log(`✅ Aggregation test completed in ${aggTime}ms`);
     console.log(`📊 Top trending keywords:`, trendingKeywords.map((k: any) => k._id));
 
-  } catch (error) {
-    console.error('❌ Error setting up search indexes:', error);
+  } catch (err) {
+    console.error('❌ Setup failed:', err);
     process.exit(1);
   } finally {
     await mongoose.disconnect();

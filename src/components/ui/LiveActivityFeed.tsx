@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAppSelector } from '@/lib/store/hooks';
+import socketManager from '@/lib/socket';
 import {
   SparklesIcon,
   ChatBubbleBottomCenterIcon,
@@ -82,23 +83,61 @@ export default function LiveActivityFeed({
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(new Date());
   const [newActivityCount, setNewActivityCount] = useState(0);
+  const [isConnected, setIsConnected] = useState(false);
 
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
+    // Initial fetch of activities
     fetchActivities();
-    
-    if (autoRefresh) {
-      const interval = setInterval(() => {
-        fetchActivities(true);
-      }, 30000); // Refresh every 30 seconds
-      
-      return () => clearInterval(interval);
-    }
-  }, [limit, autoRefresh]);
 
-  const fetchActivities = async (isRefresh = false) => {
-    if (!isRefresh) setLoading(true);
+    // Set up WebSocket connection
+    const socket = socketManager.connect(user?._id);
+
+    // Connection status handlers
+    socket.on('connect', () => {
+      console.log('🔌 Connected to activity feed');
+      setIsConnected(true);
+    });
+
+    socket.on('disconnect', () => {
+      console.log('🔌 Disconnected from activity feed');
+      setIsConnected(false);
+    });
+
+    // Activity event handlers
+    socket.on('new_activity', (newActivity: ActivityItem) => {
+      console.log('📬 New activity received:', newActivity);
+      setActivities(prev => {
+        // Avoid duplicates
+        if (prev.some(activity => activity._id === newActivity._id)) {
+          return prev;
+        }
+        return [{ ...newActivity, isLive: true }, ...prev].slice(0, limit);
+      });
+      setNewActivityCount(prev => prev + 1);
+      setLastUpdate(new Date());
+    });
+
+    socket.on('activity_update', (updatedActivity: ActivityItem) => {
+      console.log('🔄 Activity update received:', updatedActivity);
+      setActivities(prev => 
+        prev.map(activity => 
+          activity._id === updatedActivity._id ? { ...updatedActivity, isLive: true } : activity
+        )
+      );
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socket.off('new_activity');
+      socket.off('activity_update');
+      socketManager.disconnect();
+    };
+  }, [user?._id, limit]);
+
+  const fetchActivities = async () => {
+    setLoading(true);
     
     try {
       const params = new URLSearchParams({
@@ -110,29 +149,11 @@ export default function LiveActivityFeed({
       const data = await response.json();
       
       if (data.success) {
-        const newActivities = data.data || [];
-        
-        if (isRefresh && activities.length > 0) {
-          // Check for new activities
-          const latestActivityTime = new Date(activities[0]?.timestamp || 0);
-          const newItems = newActivities.filter((activity: ActivityItem) => 
-            new Date(activity.timestamp) > latestActivityTime
-          );
-          
-          if (newItems.length > 0) {
-            setNewActivityCount(prev => prev + newItems.length);
-            setActivities(prev => [...newItems, ...prev].slice(0, limit));
-          }
-        } else {
-          setActivities(newActivities);
-        }
-        
+        setActivities(data.data || []);
         setLastUpdate(new Date());
       }
     } catch (error) {
       console.error('Error fetching activities:', error);
-      // Mock data for demo purposes
-      setActivities(generateMockActivities());
     } finally {
       setLoading(false);
     }
@@ -310,37 +331,36 @@ export default function LiveActivityFeed({
   };
 
   const refreshActivities = () => {
+    fetchActivities();
     setNewActivityCount(0);
-    fetchActivities(true);
   };
 
   return (
-    <div className={`bg-slate-800 rounded-lg border border-slate-700 ${className}`}>
+    <div className={`bg-slate-800 rounded-lg shadow-lg overflow-hidden ${className}`}>
       {showHeader && (
-        <div className="flex items-center justify-between p-4 border-b border-slate-700">
+        <div className="p-4 border-b border-slate-700 flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className="relative">
-              <SparklesSolid className="h-5 w-5 text-orange-500" />
-              {newActivityCount > 0 && (
-                <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
-                  {newActivityCount > 9 ? '9+' : newActivityCount}
-                </div>
-              )}
-            </div>
-            <h3 className="text-lg font-semibold text-white">Live Activity</h3>
+            <BellIcon className="h-5 w-5 text-blue-400" />
+            <h2 className="text-lg font-semibold text-white">Live Activity</h2>
           </div>
-          
           <div className="flex items-center space-x-2">
-            <span className="text-xs text-slate-400 flex items-center">
-              <ClockIcon className="h-3 w-3 mr-1" />
-              {formatTimeAgo(lastUpdate.toISOString())}
-            </span>
+            {isConnected ? (
+              <span className="flex items-center text-sm text-green-400">
+                <span className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse" />
+                Live
+              </span>
+            ) : (
+              <span className="flex items-center text-sm text-red-400">
+                <span className="w-2 h-2 bg-red-400 rounded-full mr-2" />
+                Offline
+              </span>
+            )}
             <button
               onClick={refreshActivities}
-              className="p-1 text-slate-400 hover:text-white transition-colors"
+              className="p-1 hover:bg-slate-700 rounded-full transition-colors"
               title="Refresh activities"
             >
-              <ArrowPathIcon className="h-4 w-4" />
+              <ArrowPathIcon className="h-5 w-5 text-slate-400" />
             </button>
           </div>
         </div>

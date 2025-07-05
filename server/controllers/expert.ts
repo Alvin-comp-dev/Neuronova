@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import Expert, { IExpert } from '../models/Expert';
 import { AuthRequest } from '../middleware/auth';
+import mongoose, { Types } from 'mongoose';
 
 // @desc    Get all experts with filtering and pagination
 // @route   GET /api/experts
@@ -267,12 +268,12 @@ export const getExpert = async (req: Request, res: Response, next: NextFunction)
       data: expert,
     });
   } catch (error) {
-    if (error.name === 'CastError') {
+    if (error instanceof Error && error.name === 'CastError') {
       res.status(404).json({
         success: false,
         error: 'Expert not found',
       });
-    return;
+      return;
     }
     next(error);
   }
@@ -349,17 +350,26 @@ export const createOrUpdateProfile = async (req: AuthRequest, res: Response, nex
 // @access  Private
 export const addInsight = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const expert = await Expert.findOne({ user: req.user!._id });
+    if (!req.user?._id) {
+      res.status(401).json({
+        success: false,
+        error: 'User ID not found'
+      });
+      return;
+    }
+
+    const expert = await Expert.findOne({ user: req.user._id });
 
     if (!expert) {
       res.status(404).json({
         success: false,
         error: 'Expert profile not found',
       });
-    return;
+      return;
     }
 
     const insight = {
+      _id: new mongoose.Types.ObjectId(),
       title: req.body.title,
       content: req.body.content,
       type: req.body.type || 'insight',
@@ -370,6 +380,7 @@ export const addInsight = async (req: AuthRequest, res: Response, next: NextFunc
       createdAt: new Date(),
     };
 
+    expert.insights = expert.insights || [];
     expert.insights.unshift(insight);
     await expert.save();
 
@@ -383,34 +394,53 @@ export const addInsight = async (req: AuthRequest, res: Response, next: NextFunc
   }
 };
 
+interface ExpertEngagement {
+  followers: Types.ObjectId[];
+  following: Types.ObjectId[];
+}
+
 // @desc    Follow/unfollow expert
 // @route   POST /api/experts/:id/follow
 // @access  Private
 export const followExpert = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const expertToFollow = await Expert.findById(req.params.id);
-    const currentUserExpert = await Expert.findOne({ user: req.user!._id });
+    if (!req.user?._id) {
+      res.status(401).json({
+        success: false,
+        error: 'User ID not found'
+      });
+      return;
+    }
+
+    const userId = new Types.ObjectId(req.user._id);
+    const expertId = new Types.ObjectId(req.params.id);
+
+    const expertToFollow = await Expert.findById(expertId);
+    const currentUserExpert = await Expert.findOne({ user: userId });
 
     if (!expertToFollow) {
       res.status(404).json({
         success: false,
-        error: 'Expert not found',
+        error: 'Expert not found'
       });
-    return;
+      return;
     }
 
     if (!currentUserExpert) {
       res.status(404).json({
         success: false,
-        error: 'Your expert profile not found. Please create your profile first.',
+        error: 'Your expert profile not found. Please create your profile first.'
       });
-    return;
+      return;
     }
 
-    const userId = req.user!._id;
-    const expertId = expertToFollow._id;
+    // Initialize engagement if not exists
+    expertToFollow.engagement = expertToFollow.engagement || { followers: [], following: [] };
+    currentUserExpert.engagement = currentUserExpert.engagement || { followers: [], following: [] };
 
-    const isFollowing = expertToFollow.engagement.followers.includes(userId);
+    const isFollowing = expertToFollow.engagement.followers.some(
+      id => id.toString() === userId.toString()
+    );
 
     if (isFollowing) {
       // Unfollow
@@ -451,9 +481,10 @@ export const getTopExpertsByExpertise = async (req: Request, res: Response, next
     const { expertise } = req.params;
     const { limit = 10 } = req.query;
 
-    const limitNum = Math.min(50, Math.max(1, parseInt(limit as string)));
+    const limitNum = Math.min(50, Math.max(1, Number(limit) || 10));
 
-    const experts = await Expert.findByExpertise(expertise)
+    // Use regular find instead of findByExpertise method
+    const experts = await Expert.find({ 'expertise.areas': expertise })
       .limit(limitNum)
       .populate('user', 'name avatar')
       .lean();
@@ -462,7 +493,6 @@ export const getTopExpertsByExpertise = async (req: Request, res: Response, next
       success: true,
       data: experts,
       expertise,
-      count: experts.length,
     });
   } catch (error) {
     next(error);

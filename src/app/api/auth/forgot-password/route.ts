@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { UserModel } from '@/lib/models/User';
+import { UserService } from '@/lib/models/User';
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Find user by email
-    const user = await UserModel.findByEmail(email);
+    const user = await UserService.findByEmail(email);
     if (!user) {
       // Don't reveal if user exists or not for security
       return NextResponse.json({
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     const resetTokenExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     // Save reset token to database
-    await UserModel.setResetToken(email, resetToken, resetTokenExpiry);
+    await UserService.setResetToken(email, resetToken, resetTokenExpiry);
 
     // In a real application, you would send an email here
     // For now, we'll return the token for testing purposes

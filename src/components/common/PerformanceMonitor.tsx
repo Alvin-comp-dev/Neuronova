@@ -57,35 +57,41 @@ export function PerformanceMonitor() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    // Track Core Web Vitals
-    const observer = new PerformanceObserver((list) => {
-      for (const entry of list.getEntries()) {
-        const metric: PerformanceMetrics = {
-          name: entry.name,
-          value: Math.round(entry.value),
-          rating: getRating(entry.name, entry.value),
-        };
-        reportMetric(metric);
-      }
-    });
+    let observer: PerformanceObserver | null = null;
 
-    // Observe different performance metrics
     try {
+      // Track Core Web Vitals
+      observer = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          const metric: PerformanceMetrics = {
+            name: entry.name,
+            value: Math.round(entry.value),
+            rating: getRating(entry.name, entry.value),
+          };
+          reportMetric(metric);
+        }
+      });
+
+      // Observe different performance metrics
       observer.observe({ entryTypes: ['paint', 'navigation', 'measure'] });
     } catch (e) {
       // Fallback for older browsers
-      console.warn('Performance Observer not fully supported');
+      console.warn('Performance Observer not fully supported:', e);
     }
 
     // Track page load time
     const trackPageLoad = () => {
-      if (document.readyState === 'complete') {
-        const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
-        reportMetric({
-          name: 'Page Load',
-          value: loadTime,
-          rating: getRating('LCP', loadTime),
-        });
+      try {
+        if (document.readyState === 'complete') {
+          const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
+          reportMetric({
+            name: 'Page Load',
+            value: loadTime,
+            rating: getRating('LCP', loadTime),
+          });
+        }
+      } catch (e) {
+        console.warn('Failed to track page load time:', e);
       }
     };
 
@@ -98,13 +104,17 @@ export function PerformanceMonitor() {
     // Track route changes (for SPA navigation)
     let startTime = performance.now();
     const trackRouteChange = () => {
-      const navigationTime = performance.now() - startTime;
-      reportMetric({
-        name: 'Route Change',
-        value: Math.round(navigationTime),
-        rating: navigationTime < 500 ? 'good' : navigationTime < 1000 ? 'needs-improvement' : 'poor',
-      });
-      startTime = performance.now();
+      try {
+        const navigationTime = performance.now() - startTime;
+        reportMetric({
+          name: 'Route Change',
+          value: Math.round(navigationTime),
+          rating: navigationTime < 500 ? 'good' : navigationTime < 1000 ? 'needs-improvement' : 'poor',
+        });
+        startTime = performance.now();
+      } catch (e) {
+        console.warn('Failed to track route change:', e);
+      }
     };
 
     // Listen for Next.js route changes
@@ -116,18 +126,36 @@ export function PerformanceMonitor() {
       trackRouteChange();
     };
 
-    // Add event listeners for Next.js router events
-    if (typeof window !== 'undefined' && (window as any).next?.router) {
-      (window as any).next.router.events.on('routeChangeStart', handleRouteChangeStart);
-      (window as any).next.router.events.on('routeChangeComplete', handleRouteChangeComplete);
+    // Safely check for Next.js router events
+    let routerEvents: any = null;
+    try {
+      // Check for Next.js router in different possible locations
+      if (typeof window !== 'undefined') {
+        const nextRouter = (window as any).next?.router || (window as any).__NEXT_ROUTER__;
+        if (nextRouter && nextRouter.events && typeof nextRouter.events.on === 'function') {
+          routerEvents = nextRouter.events;
+          routerEvents.on('routeChangeStart', handleRouteChangeStart);
+          routerEvents.on('routeChangeComplete', handleRouteChangeComplete);
+        }
+      }
+    } catch (e) {
+      // Router events not available, continue without them
+      console.warn('Next.js router events not available:', e);
     }
 
     return () => {
-      observer.disconnect();
-      window.removeEventListener('load', trackPageLoad);
-      if (typeof window !== 'undefined' && (window as any).next?.router) {
-        (window as any).next.router.events.off('routeChangeStart', handleRouteChangeStart);
-        (window as any).next.router.events.off('routeChangeComplete', handleRouteChangeComplete);
+      try {
+        if (observer) {
+          observer.disconnect();
+        }
+        window.removeEventListener('load', trackPageLoad);
+        
+        if (routerEvents && typeof routerEvents.off === 'function') {
+          routerEvents.off('routeChangeStart', handleRouteChangeStart);
+          routerEvents.off('routeChangeComplete', handleRouteChangeComplete);
+        }
+      } catch (e) {
+        console.warn('Cleanup error in PerformanceMonitor:', e);
       }
     };
   }, []);

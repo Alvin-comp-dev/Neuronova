@@ -1,24 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { connectMongoose } from '@/lib/mongodb';
 import mongoose from 'mongoose';
 
-// Use the same MongoDB connection as the working APIs
-async function connectToMongoDB() {
-  const mongoUri = 'mongodb+srv://neuronova-user:uW6YaOSchJCDPn48@neuronova-user.bjw3cre.mongodb.net/neuronova?retryWrites=true&w=majority&appName=neuronova-user';
-  
-  if (mongoose.connection.readyState === 0) {
-    await mongoose.connect(mongoUri);
-  }
-}
-
-// Use a simple Research schema that matches the seeded data
+// Research schema
 const researchSchema = new mongoose.Schema({
   title: String,
   abstract: String,
-  authors: [Object],
+  authors: [{ name: String, affiliation: String }],
   categories: [String],
   tags: [String],
   keywords: [String],
-  source: Object,
+  source: {
+    name: String,
+    url: String,
+    type: String
+  },
   doi: String,
   publicationDate: Date,
   citationCount: Number,
@@ -26,7 +22,11 @@ const researchSchema = new mongoose.Schema({
   bookmarkCount: Number,
   trendingScore: Number,
   status: String,
-  metrics: Object,
+  metrics: {
+    impactScore: Number,
+    readabilityScore: Number,
+    noveltyScore: Number
+  }
 }, { timestamps: true });
 
 let Research: any;
@@ -37,232 +37,135 @@ try {
 }
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const sortBy = searchParams.get('sortBy') as 'date' | 'citations' | 'reads' | 'impact' | 'trending' || 'date';
-  const limit = parseInt(searchParams.get('limit') || '12');
-  const page = parseInt(searchParams.get('page') || '1');
-  const category = searchParams.get('category') || undefined;
-  const search = searchParams.get('search') || undefined;
-
-  const skip = (page - 1) * limit;
-
   try {
-    // Connect to MongoDB using the same connection as other working APIs
-    await connectToMongoDB();
-    console.log('✅ Connected to MongoDB for research API');
-    
-    // Build query
-    let query: any = { status: 'published' };
-    
-    if (category) {
-      query.categories = { $in: [category] };
-    }
-    
-    if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { abstract: { $regex: search, $options: 'i' } },
-        { keywords: { $regex: search, $options: 'i' } }
-      ];
-    }
-
-    // Build sort
-    let sort: any = {};
-    switch (sortBy) {
-      case 'citations':
-        sort = { citationCount: -1 };
-        break;
-      case 'impact':
-      case 'trending':
-        sort = { trendingScore: -1, publicationDate: -1 };
-        break;
-      case 'reads':
-        sort = { viewCount: -1 };
-        break;
-      default:
-        sort = { publicationDate: -1 };
-    }
-
-    // Get research articles
-    console.log('🔍 Querying research with:', { query, sort, skip, limit });
-    const research = await Research
-      .find(query)
-      .sort(sort)
-      .skip(skip)
-      .limit(limit)
-      .lean();
-    
-    console.log('📊 Found research articles:', research.length);
-
-    // Convert to frontend format that matches ResearchArticle interface
-    const publicResearch = research.map((article: any) => ({
-      _id: article._id.toString(),
-      title: article.title,
-      abstract: article.abstract,
-      authors: article.authors || [],
-      categories: article.categories || [],
-      tags: article.tags || article.keywords || [],
-      source: article.source || { name: 'Unknown Source', url: '', type: 'journal' },
-      doi: article.doi,
-      publicationDate: article.publicationDate,
-      citationCount: article.citationCount || 0,
-      viewCount: article.viewCount || 0,
-      bookmarkCount: article.bookmarkCount || 0,
-      trendingScore: article.trendingScore || 0,
-      status: article.status || 'published',
-      keywords: article.keywords || [],
-      metrics: article.metrics || {
-        impactScore: 0,
-        readabilityScore: 0,
-        noveltyScore: 0
-      }
-    }));
-
-    console.log('✅ Returning research articles:', publicResearch.length);
-    return NextResponse.json({
-      success: true,
-      data: publicResearch
-    });
-
-  } catch (error) {
-    console.error('❌ Research API error:', error);
-    
-    // Return mock data as fallback in correct format
-    console.log('🔄 Falling back to mock data');
-    const mockData = [
-      {
-        _id: '1',
-        title: 'Neural Mechanisms of Memory Consolidation During Sleep',
-        abstract: 'Sleep plays a crucial role in memory consolidation, with different sleep stages contributing to the stabilization of various types of memories. This study investigates the neural mechanisms underlying memory consolidation during slow-wave sleep and REM sleep phases.',
-        authors: [
-          { name: 'Dr. Sarah Chen', affiliation: 'Stanford University' },
-          { name: 'Prof. Michael Rodriguez', affiliation: 'MIT' }
-        ],
-        categories: ['neuroscience'],
-        tags: ['memory', 'sleep', 'EEG'],
-        source: {
-          name: 'Nature Neuroscience',
-          url: 'https://nature.com/articles/example',
-          type: 'journal' as const
-        },
-        doi: '10.1038/s41593-024-1234-5',
-        publicationDate: '2024-01-15',
-        citationCount: 45,
-        viewCount: 1234,
-        bookmarkCount: 89,
-        trendingScore: 89,
-        status: 'published' as const,
-        keywords: ['memory', 'sleep', 'EEG'],
-        metrics: {
-          impactScore: 92,
-          readabilityScore: 75,
-          noveltyScore: 88
-        }
-      },
-      {
-        _id: '2',
-        title: 'AI-Powered Drug Discovery for Alzheimer\'s Disease',
-        abstract: 'This study presents a novel artificial intelligence platform that integrates multi-omics data and machine learning algorithms to identify promising therapeutic targets and compounds for Alzheimer\'s disease treatment.',
-        authors: [
-          { name: 'Dr. Jennifer Liu', affiliation: 'Stanford AI Lab' },
-          { name: 'Prof. Alexander Petrov', affiliation: 'DeepMind' }
-        ],
-        categories: ['ai'],
-        tags: ['machine-learning', 'drug-discovery', 'alzheimers'],
-        source: {
-          name: 'Science Translational Medicine',
-          url: 'https://stm.sciencemag.org/content/example',
-          type: 'journal' as const
-        },
-        doi: '10.1126/scitranslmed.abcd1234',
-        publicationDate: '2024-01-28',
-        citationCount: 62,
-        viewCount: 987,
-        bookmarkCount: 76,
-        trendingScore: 87,
-        status: 'published' as const,
-        keywords: ['AI', 'drug discovery', 'Alzheimer\'s'],
-        metrics: {
-          impactScore: 89,
-          readabilityScore: 78,
-          noveltyScore: 91
-        }
-      }
-    ];
-    
-    // Return mock data with success: true so frontend displays it
-    console.log('📤 Returning mock data with success: true');
-    return NextResponse.json({
-      success: true,
-      data: mockData,
-      error: 'Using fallback data'
-    });
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    // Parse the request body
-    const body = await request.json();
-    const { title, abstract, authors, keywords, category, files } = body;
-
-    // Validate required fields
-    if (!title || !abstract || !authors || !keywords || !category) {
-      return NextResponse.json({
-        success: false,
-        error: 'Missing required fields'
-      }, { status: 400 });
-    }
+    // Parse query parameters
+    const url = new URL(request.url);
+    const status = url.searchParams.get('status') || 'published';
+    const sortBy = url.searchParams.get('sortBy') || 'date';
+    const limit = parseInt(url.searchParams.get('limit') || '20');
+    const page = parseInt(url.searchParams.get('page') || '1');
+    const categories = url.searchParams.get('categories')?.split(',').filter(Boolean);
 
     // Connect to MongoDB
-    await connectToMongoDB();
-    console.log('✅ Connected to MongoDB for research publishing');
+    await connectMongoose();
 
-    // Create new research document
-    const newResearch = {
-      title,
-      abstract,
-      authors,
-      categories: [category],
-      keywords,
-      tags: keywords, // Use keywords as tags
-      source: {
-        name: 'Neuronova Community',
-        url: '',
-        type: 'community'
-      },
-      doi: `10.neuronova/${Date.now()}`, // Generate a simple DOI
-      publicationDate: new Date(),
-      citationCount: 0,
-      viewCount: 0,
-      bookmarkCount: 0,
-      trendingScore: 0,
-      status: 'published',
-      metrics: {
-        impactScore: 0,
-        readabilityScore: 0,
-        noveltyScore: 0
-      },
-      files: files || []
-    };
+    // Build query
+    const query: any = { status };
+    if (categories?.length) {
+      query.categories = { $in: categories };
+    }
 
-    // Save to database
-    const savedResearch = await Research.create(newResearch);
-    console.log('✅ Research published successfully:', savedResearch._id);
+    // Build sort options
+    let sortOptions: any = {};
+    switch (sortBy) {
+      case 'citations':
+        sortOptions = { citationCount: -1, publicationDate: -1 };
+        break;
+      case 'trending':
+        sortOptions = { trendingScore: -1, publicationDate: -1 };
+        break;
+      case 'views':
+        sortOptions = { viewCount: -1, publicationDate: -1 };
+        break;
+      default: // 'date'
+        sortOptions = { publicationDate: -1 };
+    }
 
+    // Calculate pagination
+    const skip = (page - 1) * limit;
+
+    // Execute query
+    const [articles, total] = await Promise.all([
+      Research.find(query)
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Research.countDocuments(query)
+    ]);
+
+    // If no articles found, return mock data
+    if (!articles.length) {
+      const mockArticles = [
+        {
+          _id: '507f1f77bcf86cd799439011',
+          title: 'Brain-Computer Interface Enables Paralyzed Patients to Control Robotic Arms',
+          abstract: 'Brain-computer interfaces (BCIs) hold tremendous promise for restoring motor function in paralyzed individuals. This study reports the development and clinical testing of a high-resolution BCI system that enables tetraplegic patients to control robotic arms with unprecedented precision.',
+          authors: [
+            { name: 'Prof. Elena Vasquez', affiliation: 'Stanford University' },
+            { name: 'Dr. Marcus Johnson', affiliation: 'MIT' }
+          ],
+          categories: ['neuroscience', 'medical-devices'],
+          keywords: ['brain-computer interface', 'paralysis', 'neural engineering'],
+          source: { name: 'Nature Medicine', url: '', type: 'journal' },
+          publicationDate: new Date('2024-02-12'),
+          citationCount: 91,
+          viewCount: 4500,
+          bookmarkCount: 267,
+          trendingScore: 98,
+          status: 'published',
+          metrics: {
+            impactScore: 95,
+            readabilityScore: 88,
+            noveltyScore: 92
+          }
+        },
+        {
+          _id: '507f1f77bcf86cd799439012',
+          title: "AI-Powered Drug Discovery Identifies Novel Alzheimer\u2019s Therapeutics",
+          abstract: "This study presents a novel artificial intelligence platform that integrates multi-omics data, molecular dynamics simulations, and machine learning algorithms to identify promising therapeutic targets and compounds for Alzheimer\u2019s disease.",
+          authors: [
+            { name: 'Dr. Jennifer Liu', affiliation: 'Stanford University' },
+            { name: 'Prof. Alexander Petrov', affiliation: 'MIT' }
+          ],
+          categories: ['ai', 'healthcare'],
+          keywords: ['artificial intelligence', 'drug discovery', "Alzheimer\u2019s"],
+          source: { name: 'Science Translational Medicine', url: '', type: 'journal' },
+          publicationDate: new Date('2024-01-28'),
+          citationCount: 62,
+          viewCount: 3200,
+          bookmarkCount: 189,
+          trendingScore: 87,
+          status: 'published',
+          metrics: {
+            impactScore: 88,
+            readabilityScore: 82,
+            noveltyScore: 90
+          }
+        }
+      ];
+
+      return NextResponse.json({
+        success: true,
+        data: mockArticles,
+        pagination: {
+          currentPage: page,
+          totalPages: 1,
+          totalResults: mockArticles.length,
+          hasNextPage: false,
+          hasPrevPage: false
+        }
+      });
+    }
+
+    // Return successful response
     return NextResponse.json({
       success: true,
-      data: {
-        id: savedResearch._id,
-        message: 'Research published successfully'
+      data: articles,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+        totalResults: total,
+        hasNextPage: skip + articles.length < total,
+        hasPrevPage: page > 1
       }
     });
 
   } catch (error) {
-    console.error('❌ Research publishing error:', error);
+    console.error('Research API error:', error);
     return NextResponse.json({
       success: false,
-      error: 'Failed to publish research'
+      error: 'Failed to fetch research articles'
     }, { status: 500 });
   }
 } 

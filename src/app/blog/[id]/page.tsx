@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeftIcon, ExternalLinkIcon, ExclamationTriangleIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, ExclamationTriangleIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/outline';
 
 interface BlogPost {
   id: string;
@@ -183,7 +184,7 @@ export default function BlogPostPage() {
             {externalSources.length > 0 && (
               <div className="bg-slate-800 rounded-xl p-6 mb-8">
                 <h3 className="text-xl font-bold text-white mb-4 flex items-center">
-                  <ExternalLinkIcon className="w-5 h-5 mr-2" />
+                  <ArrowTopRightOnSquareIcon className="w-5 h-5 mr-2" />
                   Additional Sources & References
                 </h3>
                 <p className="text-slate-400 mb-6">
@@ -234,7 +235,7 @@ export default function BlogPostPage() {
                             className="ml-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors flex items-center gap-2"
                           >
                             Visit Source
-                            <ExternalLinkIcon className="w-4 h-4" />
+                            <ArrowTopRightOnSquareIcon className="w-4 h-4" />
                           </a>
                         )}
                       </div>
@@ -283,7 +284,7 @@ export default function BlogPostPage() {
                           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors flex items-center gap-2"
                         >
                           Search Here
-                          <ExternalLinkIcon className="w-4 h-4" />
+                          <ArrowTopRightOnSquareIcon className="w-4 h-4" />
                         </a>
                       </div>
                     </div>

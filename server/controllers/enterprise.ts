@@ -1,8 +1,9 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import Organization from '../models/Organization';
 import Team from '../models/Team';
 import User from '../models/User';
 import jwt from 'jsonwebtoken';
+import { AuthRequest } from '../middleware/auth';
 
 // Utility function to verify admin/enterprise access
 const verifyEnterpriseAccess = (req: Request): any => {
@@ -339,10 +340,11 @@ export const joinTeam = async (req: Request, res: Response): Promise<void> => {
 
     const team = await Team.findById(teamId);
     if (!team) {
-      return res.status(404).json({
+      res.status(404).json({
         success: false,
         error: 'Team not found'
       });
+      return;
     }
 
     // Check if user is already a member
@@ -351,18 +353,20 @@ export const joinTeam = async (req: Request, res: Response): Promise<void> => {
     );
     
     if (existingMember) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: 'User is already a team member'
       });
+      return;
     }
 
     // Check team capacity
     if (team.members.length >= team.collaboration.maxMembers) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         error: 'Team has reached maximum capacity'
       });
+      return;
     }
 
     // Add member to team
@@ -419,4 +423,41 @@ const getPermissionsByRole = (role: string): string[] => {
   };
   
   return permissions[role as keyof typeof permissions] || permissions.collaborator;
+};
+
+export const getEnterpriseStats = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    // ... existing code ...
+    res.status(200).json({
+      success: true,
+      data: {
+        // ... stats data ...
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateTeamMember = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { memberId } = req.params;
+    const { role, permissions } = req.body;
+
+    // Type the member parameter
+    const member: { id: string; role: string; permissions: string[] } = {
+      id: memberId,
+      role,
+      permissions
+    };
+
+    // ... rest of the code ...
+
+    res.status(200).json({
+      success: true,
+      data: member
+    });
+  } catch (error) {
+    next(error);
+  }
 }; 

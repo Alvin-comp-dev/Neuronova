@@ -135,13 +135,16 @@ userSchema.pre(/^find/, function (next) {
 });
 
 // Create model
-let User: Model<IUser>;
+let UserModel: Model<IUser>;
 
 try {
-  User = mongoose.model<IUser>('User');
+  UserModel = mongoose.model<IUser>('User');
 } catch {
-  User = mongoose.model<IUser>('User', userSchema);
+  UserModel = mongoose.model<IUser>('User', userSchema);
 }
+
+// Export the User model
+export const User = UserModel;
 
 // Mock users for development
 const mockUsers: IUser[] = [
@@ -220,7 +223,7 @@ const mockUsers: IUser[] = [
 ];
 
 // User model with fallback to mock data
-export const UserModel = {
+export const UserService = {
   // Find user by email
   async findByEmail(email: string): Promise<IUser | null> {
     // Try to connect to database first

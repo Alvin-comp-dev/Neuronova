@@ -1,368 +1,297 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { CalendarIcon, UserIcon, TagIcon, ClockIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
+import { 
+  Search, 
+  Filter, 
+  Calendar, 
+  Clock, 
+  BookOpen, 
+  User,
+  ArrowRight,
+  Tag,
+  Loader2
+} from 'lucide-react';
 
-interface BlogPost {
-  id: string;
-  title: string;
-  excerpt: string;
-  content: string;
-  author: {
-    name: string;
-    avatar: string;
-    role: string;
-  };
-  published_date: string;
-  category: string;
-  tags: string[];
-  read_time: number;
-  featured_image?: string;
-  featured: boolean;
+interface Author {
+  name: string;
+  affiliation: string;
 }
 
-const BLOG_POSTS: BlogPost[] = [
-  {
-    id: '1',
-    title: 'The Future of AI-Powered Research Discovery',
-    excerpt: 'Exploring how artificial intelligence is revolutionizing the way researchers find and connect academic literature across disciplines.',
-    content: 'Full article content...',
-    author: {
-      name: 'Dr. Sarah Chen',
-      avatar: '/avatars/sarah-chen.jpg',
-      role: 'AI Research Director'
-    },
-    published_date: '2024-01-20',
-    category: 'Artificial Intelligence',
-    tags: ['AI', 'Research', 'Machine Learning', 'Discovery'],
-    read_time: 8,
-    featured_image: '/blog/ai-research-future.jpg',
-    featured: true
-  },
-  {
-    id: '2',
-    title: 'Building Bridges: How Cross-Disciplinary Research Accelerates Innovation',
-    excerpt: 'Why the most groundbreaking discoveries happen at the intersection of different fields, and how NeuroNova facilitates these connections.',
-    content: 'Full article content...',
-    author: {
-      name: 'Prof. Michael Rodriguez',
-      avatar: '/avatars/michael-rodriguez.jpg',
-      role: 'Research Partnerships Lead'
-    },
-    published_date: '2024-01-18',
-    category: 'Research Methodology',
-    tags: ['Interdisciplinary', 'Innovation', 'Collaboration'],
-    read_time: 6,
-    featured_image: '/blog/cross-disciplinary.jpg',
-    featured: false
-  },
-  {
-    id: '3',
-    title: 'Open Science and the Democratization of Knowledge',
-    excerpt: 'How open access movements and platforms like NeuroNova are making research accessible to researchers worldwide, regardless of institutional affiliation.',
-    content: 'Full article content...',
-    author: {
-      name: 'Dr. Emily Watson',
-      avatar: '/avatars/emily-watson.jpg',
-      role: 'Open Science Advocate'
-    },
-    published_date: '2024-01-15',
-    category: 'Open Science',
-    tags: ['Open Access', 'Democracy', 'Global Research'],
-    read_time: 7,
-    featured_image: '/blog/open-science.jpg',
-    featured: true
-  },
-  {
-    id: '4',
-    title: 'The Evolution of Peer Review in the Digital Age',
-    excerpt: 'Examining how traditional peer review processes are adapting to digital platforms and collaborative review mechanisms.',
-    content: 'Full article content...',
-    author: {
-      name: 'Dr. James Kim',
-      avatar: '/avatars/james-kim.jpg',
-      role: 'Publishing Innovation Lead'
-    },
-    published_date: '2024-01-12',
-    category: 'Academic Publishing',
-    tags: ['Peer Review', 'Digital Publishing', 'Quality Control'],
-    read_time: 5,
-    featured: false
-  },
-  {
-    id: '5',
-    title: 'Semantic Search: Beyond Keywords to Understanding Intent',
-    excerpt: 'Deep dive into how semantic search technology helps researchers find relevant papers even when they don\'t know the exact terminology.',
-    content: 'Full article content...',
-    author: {
-      name: 'Dr. Lisa Park',
-      avatar: '/avatars/lisa-park.jpg',
-      role: 'Search Technology Lead'
-    },
-    published_date: '2024-01-10',
-    category: 'Technology',
-    tags: ['Semantic Search', 'NLP', 'Information Retrieval'],
-    read_time: 9,
-    featured: false
-  },
-  {
-    id: '6',
-    title: 'Research Ethics in the Age of Big Data',
-    excerpt: 'Navigating the complex ethical landscape of modern research practices, data privacy, and responsible AI development.',
-    content: 'Full article content...',
-    author: {
-      name: 'Prof. David Thompson',
-      avatar: '/avatars/david-thompson.jpg',
-      role: 'Ethics Advisor'
-    },
-    published_date: '2024-01-08',
-    category: 'Ethics',
-    tags: ['Research Ethics', 'Big Data', 'Privacy', 'Responsible AI'],
-    read_time: 10,
-    featured: true
-  }
-];
-
-const CATEGORIES = ['All', 'Artificial Intelligence', 'Research Methodology', 'Open Science', 'Academic Publishing', 'Technology', 'Ethics'];
+interface ResearchArticle {
+  _id: string;
+  title: string;
+  abstract: string;
+  authors: Author[];
+  publicationDate: string;
+  categories: string[];
+  tags: string[];
+  keywords: string[];
+  source: {
+    name: string;
+    url: string;
+    type: string;
+  };
+  status: string;
+  citationCount: number;
+  viewCount: number;
+  bookmarkCount: number;
+  trendingScore: number;
+  metrics: {
+    impactScore: number;
+    readabilityScore: number;
+    noveltyScore: number;
+  };
+}
 
 export default function BlogPage() {
-  const [posts, setPosts] = useState<BlogPost[]>(BLOG_POSTS);
-  const [filteredPosts, setFilteredPosts] = useState<BlogPost[]>(BLOG_POSTS);
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [articles, setArticles] = useState<ResearchArticle[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
   useEffect(() => {
-    filterPosts();
-  }, [selectedCategory, searchTerm]);
+    fetchArticles();
+  }, []);
 
-  const filterPosts = () => {
-    let filtered = posts;
-
-    // Filter by category
-    if (selectedCategory !== 'All') {
-      filtered = filtered.filter(post => post.category === selectedCategory);
+  const fetchArticles = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/research?status=published&sortBy=date&limit=20');
+      if (!response.ok) {
+        throw new Error('Failed to fetch articles');
+      }
+      const data = await response.json();
+      setArticles(data.data);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
     }
-
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter(post => 
-        post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.excerpt.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-    }
-
-    setFilteredPosts(filtered);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+  // Get unique categories from articles
+  const categories = ['all', ...new Set(articles.flatMap(article => article.categories))];
+
+  const filteredArticles = articles.filter(article => {
+    const matchesSearch = 
+      article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      article.abstract.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      article.authors.some(author => author.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    const matchesCategory = selectedCategory === 'all' || article.categories.includes(selectedCategory);
+    
+    return matchesSearch && matchesCategory;
+  });
+
+  const formatReadingTime = (abstract: string) => {
+    const wordsPerMinute = 200;
+    const words = abstract.split(/\s+/).length;
+    const minutes = Math.ceil(words / wordsPerMinute);
+    return `${minutes} min read`;
   };
 
-  const featuredPosts = filteredPosts.filter(post => post.featured);
-  const regularPosts = filteredPosts.filter(post => !post.featured);
+  const getCategoryImage = (category: string): string => {
+    const imageMap: { [key: string]: string } = {
+      'neuroscience': 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=800&h=600&fit=crop&q=80',
+      'ai': 'https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&h=600&fit=crop&q=80',
+      'healthcare': 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&h=600&fit=crop&q=80',
+      'medical-devices': 'https://images.unsplash.com/photo-1579154204601-01588f351e67?w=800&h=600&fit=crop&q=80',
+      'bioinformatics': 'https://images.unsplash.com/photo-1583912267550-d6c2ac3196c2?w=800&h=600&fit=crop&q=80',
+      'brain-computer-interface': 'https://images.unsplash.com/photo-1580927752452-89d86da3fa0a?w=800&h=600&fit=crop&q=80',
+      'genetics': 'https://images.unsplash.com/photo-1583912268183-a34d41fe464a?w=800&h=600&fit=crop&q=80',
+      'default': 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=800&h=600&fit=crop&q=80'
+    };
+    return imageMap[category] || imageMap.default;
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-blue-500 mx-auto mb-4" />
+          <div className="text-white text-lg">Loading articles...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="bg-red-900/20 p-6 rounded-lg border border-red-500/50">
+            <h2 className="text-xl font-semibold text-red-400 mb-2">Error Loading Articles</h2>
+            <p className="text-red-300 mb-4">{error}</p>
+            <button
+              onClick={fetchArticles}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-white mb-4">NeuroNova Blog</h1>
-          <p className="text-xl text-slate-400 max-w-3xl mx-auto">
-            Insights, discoveries, and thoughts from the forefront of research innovation. 
-            Stay updated with the latest in AI, academic publishing, and research methodology.
-          </p>
-        </div>
-
-        {/* Search and Filters */}
-        <div className="mb-12">
-          <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
-            {/* Search */}
-            <div className="w-full lg:w-1/3">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-white mb-6">
+              Neuronova Blog
+            </h1>
+            <p className="text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
+              Explore the latest breakthroughs in neuroscience, healthcare technology, and medical research
+            </p>
+            
+            {/* Search Bar */}
+            <div className="max-w-2xl mx-auto">
               <div className="relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search articles..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-4 py-3 pl-10 bg-slate-800 border border-slate-700 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-12 pr-4 py-4 bg-white/10 border border-white/20 rounded-lg text-white placeholder-slate-300 backdrop-blur-sm focus:outline-none focus:ring-2 focus:ring-white/30"
                 />
-                <svg className="absolute left-3 top-3.5 h-5 w-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
               </div>
-            </div>
-
-            {/* Categories */}
-            <div className="flex flex-wrap gap-2">
-              {CATEGORIES.map(category => (
-                <button
-                  key={category}
-                  onClick={() => setSelectedCategory(category)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                    selectedCategory === category
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
-                  }`}
-                >
-                  {category}
-                </button>
-              ))}
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Featured Posts */}
-        {featuredPosts.length > 0 && (
-          <div className="mb-16">
-            <h2 className="text-2xl font-bold text-white mb-8">Featured Articles</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {featuredPosts.map(post => (
-                <Link key={post.id} href={`/blog/${post.id}`}>
-                  <article className="bg-slate-800 rounded-xl overflow-hidden hover:transform hover:scale-105 transition-all duration-300 cursor-pointer group">
-                    {post.featured_image && (
-                      <div className="h-48 bg-slate-700 relative overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/50 to-transparent" />
-                        <div className="absolute bottom-4 left-4">
-                          <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-                            Featured
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                    <div className="p-6">
-                      <div className="flex items-center space-x-4 mb-4">
-                        <span className="text-blue-400 text-sm font-medium">{post.category}</span>
-                        <span className="text-slate-500">•</span>
-                        <span className="text-slate-400 text-sm flex items-center">
-                          <ClockIcon className="h-4 w-4 mr-1" />
-                          {post.read_time} min read
-                        </span>
-                      </div>
-                      
-                      <h3 className="text-xl font-bold text-white mb-3 group-hover:text-blue-400 transition-colors">
-                        {post.title}
-                      </h3>
-                      
-                      <p className="text-slate-300 mb-4 line-clamp-3">{post.excerpt}</p>
-                      
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-slate-600 rounded-full flex items-center justify-center">
-                            <UserIcon className="h-4 w-4 text-slate-300" />
-                          </div>
-                          <div>
-                            <p className="text-white text-sm font-medium">{post.author.name}</p>
-                            <p className="text-slate-400 text-xs">{post.author.role}</p>
-                          </div>
-                        </div>
-                        <span className="text-slate-400 text-sm">
-                          {formatDate(post.published_date)}
-                        </span>
-                      </div>
-                    </div>
-                  </article>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
+      {/* Category Filter */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center gap-4 overflow-x-auto pb-4">
+          <Filter className="h-5 w-5 text-slate-400" />
+          {categories.map((category) => (
+            <button
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${
+                selectedCategory === category
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+              }`}
+            >
+              {category === 'all' ? 'All Categories' : category}
+            </button>
+          ))}
+        </div>
+      </div>
 
-        {/* Regular Posts */}
-        <div>
-          <h2 className="text-2xl font-bold text-white mb-8">
-            Latest Articles {filteredPosts.length > 0 && `(${filteredPosts.length})`}
-          </h2>
-          
-          {loading ? (
+      {/* Blog Posts */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 gap-12">
+          {filteredArticles.length === 0 ? (
             <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-              <p className="text-slate-400">Loading articles...</p>
-            </div>
-          ) : filteredPosts.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-slate-400 text-lg mb-4">No articles found matching your criteria.</p>
+              <BookOpen className="h-16 w-16 text-slate-600 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-white mb-2">No articles found</h3>
+              <p className="text-slate-400">
+                Try adjusting your search terms or filters
+              </p>
               <button
                 onClick={() => {
-                  setSearchTerm('');
-                  setSelectedCategory('All');
+                  setSearchQuery('');
+                  setSelectedCategory('all');
                 }}
-                className="text-blue-400 hover:text-blue-300"
+                className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
-                Clear filters
+                Clear Filters
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {regularPosts.map(post => (
-                <Link key={post.id} href={`/blog/${post.id}`}>
-                  <article className="bg-slate-800 rounded-xl p-6 hover:bg-slate-750 transition-colors cursor-pointer group">
-                    <div className="mb-4">
-                      <div className="flex items-center space-x-2 mb-3">
-                        <span className="text-blue-400 text-sm font-medium">{post.category}</span>
-                        <span className="text-slate-500">•</span>
-                        <span className="text-slate-400 text-sm flex items-center">
-                          <ClockIcon className="h-4 w-4 mr-1" />
-                          {post.read_time} min
-                        </span>
-                      </div>
-                      
-                      <h3 className="text-lg font-bold text-white mb-3 group-hover:text-blue-400 transition-colors">
-                        {post.title}
-                      </h3>
-                      
-                      <p className="text-slate-300 text-sm mb-4 line-clamp-3">{post.excerpt}</p>
+            filteredArticles.map((article) => (
+              <article
+                key={article._id}
+                className="bg-slate-800 rounded-xl overflow-hidden shadow-xl hover:shadow-2xl transition-shadow duration-300 border border-slate-700"
+              >
+                <div className="md:flex">
+                  <div className="md:w-1/3">
+                    <div className="relative h-64 md:h-full bg-slate-800">
+                      <div className="absolute inset-0 bg-slate-900/30" /> {/* Dark overlay */}
+                      <img
+                        src={getCategoryImage(article.categories[0])}
+                        alt={`${article.title} - ${article.categories[0]}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = getCategoryImage('default');
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/40 to-transparent pointer-events-none" />
                     </div>
-
+                  </div>
+                  <div className="md:w-2/3 p-8">
                     <div className="flex flex-wrap gap-2 mb-4">
-                      {post.tags.slice(0, 3).map(tag => (
-                        <span key={tag} className="bg-slate-700 text-slate-300 px-2 py-1 rounded text-xs">
-                          {tag}
+                      {article.categories.map((category) => (
+                        <span
+                          key={category}
+                          className="px-3 py-1 bg-blue-600 text-blue-100 text-sm rounded-full"
+                        >
+                          {category}
+                        </span>
+                      ))}
+                      {article.keywords.slice(0, 3).map((keyword) => (
+                        <span
+                          key={keyword}
+                          className="px-3 py-1 bg-slate-700 text-slate-300 text-sm rounded-full"
+                        >
+                          {keyword}
                         </span>
                       ))}
                     </div>
 
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-6 h-6 bg-slate-600 rounded-full flex items-center justify-center">
-                          <UserIcon className="h-3 w-3 text-slate-300" />
-                        </div>
-                        <span className="text-slate-400 text-xs">{post.author.name}</span>
-                      </div>
-                      <span className="text-slate-400 text-xs">
-                        {formatDate(post.published_date)}
-                      </span>
-                    </div>
-                  </article>
-                </Link>
-              ))}
-            </div>
-          )}
-        </div>
+                    <h2 className="text-2xl font-bold text-white mb-4">
+                      {article.title}
+                    </h2>
 
-        {/* Newsletter Signup */}
-        <div className="mt-16 bg-slate-800 rounded-xl p-8 text-center">
-          <h3 className="text-2xl font-bold text-white mb-4">Stay Updated</h3>
-          <p className="text-slate-400 mb-6 max-w-2xl mx-auto">
-            Get the latest articles, research insights, and platform updates delivered to your inbox. 
-            Join our community of researchers and innovators.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
-            <input
-              type="email"
-              placeholder="Enter your email"
-              className="flex-1 px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-lg font-medium transition-colors whitespace-nowrap">
-              Subscribe
-            </button>
-          </div>
+                    <p className="text-slate-300 mb-6 line-clamp-3">
+                      {article.abstract}
+                    </p>
+
+                    <div className="flex flex-wrap items-center gap-6 text-sm text-slate-400 mb-6">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        <span>{new Date(article.publicationDate).toLocaleDateString()}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        <span>{formatReadingTime(article.abstract)}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4" />
+                        <span>{article.authors.map(a => a.name).join(', ')}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4 text-sm text-slate-400">
+                        <span>{article.viewCount} views</span>
+                        <span>{article.citationCount} citations</span>
+                        <span>{article.bookmarkCount} bookmarks</span>
+                      </div>
+                      <Link
+                        href={`/research/${article._id}`}
+                        className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
+                      >
+                        Read More
+                        <ArrowRight className="h-4 w-4" />
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              </article>
+            ))
+          )}
         </div>
       </div>
     </div>

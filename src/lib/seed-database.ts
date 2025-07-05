@@ -1,4 +1,4 @@
-import { UserModel } from './models/User';
+import { UserService } from './models/User';
 import { ResearchModel } from './models/Research';
 
 export async function seedDatabase() {
@@ -61,9 +61,9 @@ export async function seedDatabase() {
     const createdUsers = [];
     for (const userData of sampleUsers) {
       try {
-        const existingUser = await UserModel.findByEmail(userData.email);
+        const existingUser = await UserService.findByEmail(userData.email);
         if (!existingUser) {
-          const user = await UserModel.create(userData);
+          const user = await UserService.create(userData);
           createdUsers.push(user);
           console.log(`✅ Created user: ${userData.name}`);
         } else {

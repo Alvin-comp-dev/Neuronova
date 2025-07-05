@@ -159,10 +159,10 @@ export default function ResearchPage() {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('/api/research/stats');
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+      const response = await fetch(`${apiUrl}/api/research/stats`);
       const data = await response.json();
       if (data.success) {
-        // Map API data structure to expected format
         setStats({
           totalArticles: data.data.totalPapers || 0,
           publishedArticles: data.data.featuredPapers || 0,
@@ -172,7 +172,6 @@ export default function ResearchPage() {
       }
     } catch (error) {
       console.error('Error fetching stats:', error);
-      // Keep default values on error
     }
   };
 
@@ -180,6 +179,7 @@ export default function ResearchPage() {
     console.log('🚀 fetchArticles called - setting loading to true');
     setLoading(true);
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
       // Build query parameters
       const params = new URLSearchParams({
         sortBy: sortBy === 'newest' ? 'date' : sortBy,
@@ -191,10 +191,10 @@ export default function ResearchPage() {
       }
       
       if (selectedCategories.length > 0) {
-        params.append('category', selectedCategories[0]); // For now, use first category
+        params.append('category', selectedCategories[0]);
       }
 
-      const url = `/api/research?${params}`;
+      const url = `${apiUrl}/api/research?${params}`;
       console.log('🌐 Fetching URL:', url);
       
       const response = await fetch(url);
@@ -202,14 +202,11 @@ export default function ResearchPage() {
       
       const data = await response.json();
       console.log('📊 API Response:', data);
-      console.log('📊 Data success:', data.success);
-      console.log('📊 Data.data length:', data.data?.length);
       
       if (data.success && data.data) {
         console.log('✅ Setting articles to state, count:', data.data.length);
         setArticles(data.data);
         setTotalResults(data.data.length);
-        console.log('✅ Articles and totalResults set');
       } else {
         console.error('❌ API error or no data:', data);
         setArticles([]);
@@ -220,7 +217,6 @@ export default function ResearchPage() {
       setArticles([]);
       setTotalResults(0);
     } finally {
-      console.log('🏁 Setting loading to false');
       setLoading(false);
     }
   };
