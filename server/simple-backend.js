@@ -912,10 +912,284 @@ app.post('/api/recommendations', async (req, res) => {
   }
 });
 
+// Discussions endpoints (mock for now)
+app.get('/api/discussions', async (req, res) => {
+  try {
+    const { filter = 'all', sort = 'recent', search = '', limit = 20 } = req.query;
+    
+    // Generate mock discussions list
+    const mockDiscussions = [
+      {
+        _id: '6759e1a123456789',
+        title: 'Neural Interface Breakthrough: New Findings',
+        content: 'Recent research has shown promising results in brain-computer interface technology. Our team has developed a new approach that significantly improves signal clarity and reduces invasiveness.',
+        category: 'neuroscience',
+        author: {
+          _id: 'mock-author-1',
+          name: 'Dr. Sarah Mitchell',
+          profile: {
+            avatar: '/api/placeholder/40/40',
+            title: 'Senior Neuroscientist',
+            affiliation: 'NeuroUniversity Research Center'
+          }
+        },
+        tags: ['neuroscience', 'BCI', 'research', 'breakthrough'],
+        likes: 24,
+        replies: 8,
+        views: 156,
+        isPinned: false,
+        isLiked: false,
+        isBookmarked: false,
+        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        moderationStatus: 'approved'
+      },
+      {
+        _id: '6759e1b987654321',
+        title: 'CRISPR Applications in Neurological Disorders',
+        content: 'Exploring the potential of gene editing technology in treating neurological conditions. This discussion covers recent advances and ethical considerations.',
+        category: 'gene-therapy',
+        author: {
+          _id: 'mock-author-2',
+          name: 'Prof. Michael Rodriguez',
+          profile: {
+            avatar: '/api/placeholder/40/40',
+            title: 'Gene Therapy Expert',
+            affiliation: 'Johns Hopkins University'
+          }
+        },
+        tags: ['CRISPR', 'gene-therapy', 'neurology', 'ethics'],
+        likes: 18,
+        replies: 12,
+        views: 203,
+        isPinned: true,
+        isLiked: false,
+        isBookmarked: false,
+        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+        moderationStatus: 'approved'
+      },
+      {
+        _id: '6759e1c456789012',
+        title: 'AI-Powered Drug Discovery: Latest Developments',
+        content: 'Machine learning algorithms are revolutionizing pharmaceutical research. Join the discussion on recent breakthroughs and future possibilities.',
+        category: 'ai-research',
+        author: {
+          _id: 'mock-author-3',
+          name: 'Dr. Lisa Wang',
+          profile: {
+            avatar: '/api/placeholder/40/40',
+            title: 'AI Healthcare Lead',
+            affiliation: 'Google DeepMind'
+          }
+        },
+        tags: ['AI', 'drug-discovery', 'machine-learning', 'pharmaceuticals'],
+        likes: 31,
+        replies: 15,
+        views: 287,
+        isPinned: false,
+        isLiked: false,
+        isBookmarked: false,
+        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 0.5 * 24 * 60 * 60 * 1000).toISOString(),
+        moderationStatus: 'approved'
+      },
+      {
+        _id: '6759e1d789012345',
+        title: 'Regenerative Medicine: Stem Cell Research Updates',
+        content: 'Latest developments in stem cell research and tissue engineering. Discussing clinical trials and therapeutic applications.',
+        category: 'regenerative-medicine',
+        author: {
+          _id: 'mock-author-4',
+          name: 'Dr. James Chen',
+          profile: {
+            avatar: '/api/placeholder/40/40',
+            title: 'Research Fellow',
+            affiliation: 'Stanford Medicine'
+          }
+        },
+        tags: ['stem-cells', 'regenerative-medicine', 'clinical-trials'],
+        likes: 22,
+        replies: 9,
+        views: 178,
+        isPinned: false,
+        isLiked: false,
+        isBookmarked: false,
+        createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        moderationStatus: 'approved'
+      }
+    ];
+    
+    // Apply search filter if provided
+    let filteredDiscussions = mockDiscussions;
+    if (search) {
+      const searchLower = search.toLowerCase();
+      filteredDiscussions = mockDiscussions.filter(d => 
+        d.title.toLowerCase().includes(searchLower) ||
+        d.content.toLowerCase().includes(searchLower) ||
+        d.tags.some(tag => tag.toLowerCase().includes(searchLower))
+      );
+    }
+    
+    // Apply sorting
+    switch (sort) {
+      case 'popular':
+        filteredDiscussions.sort((a, b) => (b.likes + b.replies) - (a.likes + a.replies));
+        break;
+      case 'replies':
+        filteredDiscussions.sort((a, b) => b.replies - a.replies);
+        break;
+      default: // recent
+        filteredDiscussions.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
+    
+    // Apply limit
+    filteredDiscussions = filteredDiscussions.slice(0, parseInt(limit));
+    
+    console.log(`📋 Serving ${filteredDiscussions.length} discussions (filter: ${filter}, sort: ${sort})`);
+    
+    res.json({
+      success: true,
+      discussions: filteredDiscussions
+    });
+  } catch (error) {
+    console.error('Discussions list error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch discussions'
+    });
+  }
+});
+
+app.get('/api/discussions/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Generate mock discussion data
+    const mockDiscussion = {
+      _id: id,
+      title: `Research Discussion: ${id.slice(-8)}`,
+      content: `This is an active discussion about cutting-edge neuroscience research. The community is exploring various aspects of the methodology, results, and implications of recent findings.
+
+**Discussion Topics:**
+- Experimental design and methodology
+- Statistical analysis approaches
+- Clinical applications and therapeutic potential
+- Future research directions
+- Collaborative opportunities
+
+This discussion demonstrates the collaborative nature of our research community, where experts from various institutions share insights and build upon each other's work.
+
+Feel free to join the conversation by sharing your thoughts, asking questions, or providing additional insights based on your research experience.`,
+      category: 'general',
+      author: {
+        _id: 'mock-author-1',
+        name: 'Dr. Sarah Mitchell',
+        email: 'sarah.mitchell@neurouniversity.edu',
+        profile: {
+          avatar: '/api/placeholder/40/40',
+          title: 'Senior Neuroscientist',
+          affiliation: 'NeuroUniversity Research Center'
+        }
+      },
+      tags: ['neuroscience', 'research', 'methodology', 'collaboration'],
+      views: Math.floor(Math.random() * 200) + 50,
+      likes: Math.floor(Math.random() * 30) + 5,
+      replies: 3,
+      isBookmarked: false,
+      isPinned: false,
+      isLiked: false,
+      createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+      updatedAt: new Date().toISOString(),
+      moderationStatus: 'approved',
+      posts: [
+        {
+          _id: `post-${id.slice(-4)}-1`,
+          content: "Great topic! I've been researching similar neural pathways in my lab. The methodology you described aligns well with current best practices in the field.",
+          author: {
+            _id: 'mock-author-2',
+            name: 'Dr. James Chen',
+            email: 'james.chen@neurouniversity.edu',
+            profile: {
+              avatar: '/api/placeholder/40/40',
+              title: 'Research Fellow',
+              affiliation: 'NeuroUniversity Research Center'
+            }
+          },
+          parentId: null,
+          reactions: [],
+          createdAt: new Date(Date.now() - Math.random() * 5 * 24 * 60 * 60 * 1000).toISOString(),
+          updatedAt: new Date(Date.now() - Math.random() * 3 * 24 * 60 * 60 * 1000).toISOString(),
+          isEdited: false,
+          isDeleted: false,
+          moderationStatus: 'approved'
+        },
+        {
+          _id: `post-${id.slice(-4)}-2`,
+          content: "Could you share more details about your experimental methodology? I'm particularly interested in the statistical analysis approach you used.",
+          author: {
+            _id: 'mock-author-3',
+            name: 'Dr. Maria Rodriguez',
+            email: 'maria.rodriguez@neurouniversity.edu',
+            profile: {
+              avatar: '/api/placeholder/40/40',
+              title: 'Professor of Neuroscience',
+              affiliation: 'NeuroUniversity Research Center'
+            }
+          },
+          parentId: null,
+          reactions: [],
+          createdAt: new Date(Date.now() - Math.random() * 2 * 24 * 60 * 60 * 1000).toISOString(),
+          updatedAt: new Date(Date.now() - Math.random() * 1 * 24 * 60 * 60 * 1000).toISOString(),
+          isEdited: false,
+          isDeleted: false,
+          moderationStatus: 'approved'
+        },
+        {
+          _id: `post-${id.slice(-4)}-3`,
+          content: "This research has significant implications for clinical applications. Have you considered the potential therapeutic applications?",
+          author: {
+            _id: 'mock-author-4',
+            name: 'Dr. Alex Thompson',
+            email: 'alex.thompson@neurouniversity.edu',
+            profile: {
+              avatar: '/api/placeholder/40/40',
+              title: 'Clinical Researcher',
+              affiliation: 'NeuroUniversity Medical Center'
+            }
+          },
+          parentId: null,
+          reactions: [],
+          createdAt: new Date(Date.now() - Math.random() * 1 * 24 * 60 * 60 * 1000).toISOString(),
+          updatedAt: new Date(Date.now() - Math.random() * 0.5 * 24 * 60 * 60 * 1000).toISOString(),
+          isEdited: false,
+          isDeleted: false,
+          moderationStatus: 'approved'
+        }
+      ]
+    };
+    
+    console.log(`📋 Serving discussion: ${mockDiscussion.title}`);
+    
+    res.json({
+      success: true,
+      data: mockDiscussion
+    });
+  } catch (error) {
+    console.error('Discussion error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch discussion'
+    });
+  }
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`📍 Health check: http://localhost:${PORT}/health`);
   console.log(`👑 Admin dashboard: http://localhost:3000/admin`);
   console.log(`🔬 Research page: http://localhost:3000/research`);
+  console.log(`💬 Discussions API: http://localhost:${PORT}/api/discussions/:id`);
 });
