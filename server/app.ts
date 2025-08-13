@@ -14,7 +14,7 @@ import researchRoutes from './routes/research';
 import communityRoutes from './routes/community';
 import expertRoutes from './routes/expert';
 import notificationRoutes from './routes/notification';
-import analyticsRoutes from './routes/analytics';
+// import analyticsRoutes from './routes/analytics'; // Temporarily disabled
 import enterpriseRoutes from './routes/enterprise';
 import securityRoutes from './routes/security';
 
@@ -51,7 +51,7 @@ app.use('/api/research', researchRoutes);
 app.use('/api/community', communityRoutes);
 app.use('/api/experts', expertRoutes);
 app.use('/api/notifications', notificationRoutes);
-app.use('/api/analytics', analyticsRoutes);
+// app.use('/api/analytics', analyticsRoutes); // Temporarily disabled
 app.use('/api/enterprise', enterpriseRoutes);
 app.use('/api/security', securityRoutes);
 

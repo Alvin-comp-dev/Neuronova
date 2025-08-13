@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { connectToMongoDB, getResearch, getShare } from '@/lib/models';
 
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
 // Verify JWT token (optional for shares)
 function verifyToken(request: NextRequest): string | null {
   try {
@@ -78,8 +80,29 @@ export async function GET(request: NextRequest) {
 // POST - Record a share and generate share content
 export async function POST(request: NextRequest) {
   try {
-    const { articleId, shareType, platform } = await request.json();
+    const body = await request.json();
+    const { articleId, shareType } = body;
 
+    // Try backend first for simple share functionality
+    try {
+      const backendUrl = `${BACKEND_URL}/api/shares`;
+      const response = await fetch(backendUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        return NextResponse.json(data);
+      }
+    } catch (backendError) {
+      console.log('Backend share failed, falling back to database:', backendError);
+    }
+
+    // Fallback to original database implementation
     if (!articleId || !shareType) {
       return NextResponse.json(
         { success: false, error: 'Article ID and share type are required' },

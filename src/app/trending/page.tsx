@@ -61,10 +61,10 @@ export default function TrendingPage() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [loading, setLoading] = useState(true);
 
-  // Mock data for Top 10 Breakthroughs of the Week with images
+  // Mock data for Top 10 Breakthroughs of the Week with images (using real article IDs)
   const mockBreakthroughs: TrendingBreakthrough[] = [
     {
-      _id: '507f1f77bcf86cd799439011',
+      _id: '6861a3da375c3d7dfe433a5a',
       title: 'Brain-Computer Interface Enables Paralyzed Patients to Control Robotic Arms',
       authors: ['Prof. Elena Vasquez', 'Dr. Marcus Johnson', 'Dr. Priya Patel', 'Dr. Thomas Wilson'],
       journal: 'Nature Medicine',
@@ -81,7 +81,7 @@ export default function TrendingPage() {
       image: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=250&fit=crop'
     },
     {
-      _id: '507f1f77bcf86cd799439012',
+      _id: '6861a3da375c3d7dfe433a5b',
       title: 'Machine Learning Predicts Alzheimer\'s Disease 10 Years Before Symptoms',
       authors: ['Dr. Linda Chen', 'Prof. Robert Johnson', 'Dr. Yuki Sato', 'Dr. Elena Popov'],
       journal: 'Nature Medicine',
@@ -98,7 +98,7 @@ export default function TrendingPage() {
       image: 'https://images.unsplash.com/photo-1576086213369-97a306d36557?w=400&h=250&fit=crop'
     },
     {
-      _id: '507f1f77bcf86cd799439013',
+      _id: '6861a3da375c3d7dfe433a5c',
       title: 'Stem Cell Therapy Restores Vision in Macular Degeneration Patients',
       authors: ['Prof. Catherine Wong', 'Dr. Ahmed Hassan', 'Dr. Nora Johansson', 'Dr. Paul Martinez'],
       journal: 'The Lancet',
@@ -115,7 +115,7 @@ export default function TrendingPage() {
       image: 'https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=400&h=250&fit=crop'
     },
     {
-      _id: '507f1f77bcf86cd799439014',
+      _id: '6861a3da375c3d7dfe433a5d',
       title: 'Personalized Medicine Approach to Cancer Immunotherapy',
       authors: ['Dr. Kevin Zhang', 'Prof. Isabella Rodriguez', 'Dr. Michael O\'Connor', 'Dr. Fatima Al-Rashid'],
       journal: 'Nature Cancer',
@@ -132,7 +132,7 @@ export default function TrendingPage() {
       image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&h=250&fit=crop'
     },
     {
-      _id: '507f1f77bcf86cd799439015',
+      _id: '6861a3da375c3d7dfe433a5e',
       title: 'Neural Mechanisms of Memory Consolidation During Sleep',
       authors: ['Dr. Sarah Chen', 'Prof. Michael Rodriguez', 'Dr. Lisa Wang', 'Dr. James Thompson'],
       journal: 'Nature Neuroscience',
@@ -149,7 +149,7 @@ export default function TrendingPage() {
       image: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=400&h=250&fit=crop&crop=center'
     },
     {
-      _id: '507f1f77bcf86cd799439016',
+      _id: '6861a3da375c3d7dfe433a5f',
       title: 'CRISPR-Cas9 Gene Therapy for Huntington\'s Disease: A Phase I Clinical Trial',
       authors: ['Dr. Maria Gonzalez', 'Prof. David Kim', 'Dr. Rachel Adams', 'Dr. Steven Clark'],
       journal: 'New England Journal of Medicine',
@@ -166,7 +166,7 @@ export default function TrendingPage() {
       image: 'https://images.unsplash.com/photo-1582719471384-894fbb16e074?w=400&h=250&fit=crop'
     },
     {
-      _id: '507f1f77bcf86cd799439017',
+      _id: '6861a3da375c3d7dfe433a60',
       title: 'AI-Powered Drug Discovery Identifies Novel Alzheimer\'s Therapeutics',
       authors: ['Dr. Jennifer Liu', 'Prof. Alexander Petrov', 'Dr. Yuki Tanaka', 'Dr. Robert Brown'],
       journal: 'Science Translational Medicine',
@@ -183,7 +183,7 @@ export default function TrendingPage() {
       image: 'https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=400&h=250&fit=crop&crop=top'
     },
     {
-      _id: '507f1f77bcf86cd799439018',
+      _id: '6861a3da375c3d7dfe433a61',
       title: 'Optogenetics Reveals Neural Circuits Underlying Depression',
       authors: ['Dr. Amanda Foster', 'Prof. Hiroshi Nakamura', 'Dr. Carlos Mendez', 'Dr. Sophie Laurent'],
       journal: 'Cell',
@@ -200,7 +200,7 @@ export default function TrendingPage() {
       image: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=400&h=250&fit=crop'
     },
     {
-      _id: '507f1f77bcf86cd799439019',
+      _id: '6861a3da375c3d7dfe433a62',
       title: 'Microbiome Modulation Improves Parkinson\'s Disease Symptoms',
       authors: ['Dr. Patricia Kim', 'Prof. Giovanni Rossi', 'Dr. Ana Martinez', 'Dr. John Smith'],
       journal: 'Gut',
@@ -217,7 +217,7 @@ export default function TrendingPage() {
       image: 'https://images.unsplash.com/photo-1576086213369-97a306d36557?w=400&h=250&fit=crop&crop=top'
     },
     {
-      _id: '507f1f77bcf86cd799439020',
+      _id: '6861a3da375c3d7dfe433a63',
       title: 'Virtual Reality Therapy for Post-Traumatic Stress Disorder',
       authors: ['Dr. Rebecca Taylor', 'Prof. James Anderson', 'Dr. Maria Santos', 'Dr. David Lee'],
       journal: 'American Journal of Psychiatry',
@@ -555,11 +555,9 @@ export default function TrendingPage() {
                   <div className="flex-1 p-6">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
-                        <Link href={`/research/${breakthrough._id}`}>
-                          <h3 className="text-lg font-semibold text-white hover:text-blue-400 cursor-pointer transition-colors mb-2 line-clamp-2">
-                            {breakthrough.title}
-                          </h3>
-                        </Link>
+                        <h3 className="text-lg font-semibold text-white group-hover:text-blue-400 cursor-pointer transition-colors mb-2 line-clamp-2">
+                          {breakthrough.title}
+                        </h3>
                         <div className="text-sm text-slate-400 mb-3">
                           By {breakthrough.authors.slice(0, 2).join(', ')}
                           {breakthrough.authors.length > 2 && ` +${breakthrough.authors.length - 2} more`} • {breakthrough.journal}

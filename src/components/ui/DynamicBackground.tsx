@@ -16,7 +16,7 @@ interface DynamicBackgroundProps {
 
 export default function DynamicBackground({ 
   type = 'auto',
-  videoSrc = '/videos/anatomy-animation.mp4',
+  videoSrc = '/videos/Anatomy-Animation.mp4',
   opacity = 0.3,
   className = '',
   enableUserChoice = true
@@ -29,20 +29,31 @@ export default function DynamicBackground({
   useEffect(() => {
     if (type === 'auto') {
       // Check if video exists
+      console.log('🎥 Checking video availability at:', videoSrc);
       fetch(videoSrc, { method: 'HEAD' })
         .then(response => {
+          console.log('🎥 Video check response:', response.status, response.ok);
           if (response.ok) {
             setVideoAvailable(true);
             setBackgroundType('video');
+            console.log('🎥 Video available, setting background to video');
           } else {
+            setVideoAvailable(false);
             setBackgroundType('3d');
+            console.log('🎥 Video not available, setting background to 3d');
           }
         })
-        .catch(() => {
+        .catch((error) => {
+          console.log('🎥 Video check failed:', error);
+          setVideoAvailable(false);
           setBackgroundType('3d');
         });
     } else {
       setBackgroundType(type);
+      // For non-auto types, assume video is available if type is 'video'
+      if (type === 'video') {
+        setVideoAvailable(true);
+      }
     }
   }, [type, videoSrc]);
 
@@ -58,14 +69,17 @@ export default function DynamicBackground({
 
   // Save user preference
   const changeBackground = (newType: BackgroundType) => {
+    console.log('🎨 Changing background from', backgroundType, 'to', newType);
     setBackgroundType(newType);
     if (enableUserChoice) {
       localStorage.setItem('neuronova-background-type', newType);
+      console.log('🎨 Background preference saved to localStorage:', newType);
     }
   };
 
   const renderBackground = () => {
     // Ensure only one background is active at a time
+    console.log('🎨 Rendering background type:', backgroundType);
     return (
       <div className="fixed inset-0 -z-10">
         {backgroundType === 'video' && (
@@ -119,20 +133,23 @@ export default function DynamicBackground({
             {/* Controls Panel */}
             {showControls && (
               <div className="mt-3 space-y-2">
-                <div className="text-xs text-slate-400 font-medium mb-2">Background Style</div>
+                <div className="text-xs text-slate-400 font-medium mb-2">
+                  Background Style 
+                  <span className="text-slate-500 ml-1">
+                    ({backgroundType} - Video: {videoAvailable ? 'Yes' : 'No'})
+                  </span>
+                </div>
                 
-                {videoAvailable && (
-                  <button
-                    onClick={() => changeBackground('video')}
-                    className={`w-full text-left px-3 py-2 rounded text-xs transition-colors ${
-                      backgroundType === 'video' 
-                        ? 'bg-blue-600 text-white' 
-                        : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
-                    }`}
-                  >
-                    🎥 Video Animation
-                  </button>
-                )}
+                <button
+                  onClick={() => changeBackground('video')}
+                  className={`w-full text-left px-3 py-2 rounded text-xs transition-colors ${
+                    backgroundType === 'video' 
+                      ? 'bg-blue-600 text-white' 
+                      : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
+                  }`}
+                >
+                  🎥 Video Animation {!videoAvailable && '(Loading...)'}
+                </button>
                 
                 <button
                   onClick={() => changeBackground('3d')}

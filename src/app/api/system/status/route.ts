@@ -19,12 +19,26 @@ export async function GET(request: NextRequest) {
       platform: process.platform
     };
 
+    // Format cache stats to match what the frontend expects
+    const formattedCacheStats = {
+      hits: cacheStats?.memory?.hits || 0,
+      misses: cacheStats?.memory?.misses || 0,
+      size: cacheStats?.memory?.keys || 0
+    };
+
+    // Format rate limit stats to match what the frontend expects
+    const services = Object.keys(rateLimitStats || {});
+    const formattedRateLimitStats = {
+      total: services.length,
+      active: services.filter(service => rateLimitStats[service]?.current?.blocked).length
+    };
+
     return NextResponse.json({
       success: true,
       data: {
         system: systemInfo,
-        cache: cacheStats,
-        rateLimits: rateLimitStats
+        cache: formattedCacheStats,
+        rateLimits: formattedRateLimitStats
       }
     });
 

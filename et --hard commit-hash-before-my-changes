@@ -1,0 +1,23 @@
+[33m8e4c684[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Fix: Resolved merge conflicts and implemented full backend API
+[33m2ce0daa[m Fix backend crash and frontend build issues
+[33m0318716[m Backend-deployment-ready
+[33m0abad87[m Add backend deployment configuration for Vercel
+[33mda1c95a[m fix: Resolve 500 errors and optimize configuration
+[33m8a0456a[m feat: Comprehensive Performance Optimization Implementation
+[33m9f59725[m Fix: Search functionality and duplicate key errors - Enhanced header search, added deduplication, improved admin systems
+[33mab30ce8[m feat: Implement comprehensive multi-source research discovery system
+[33m03806d4[m fix: resolve TypeScript errors and MongoDB import issues
+[33m35c28f5[m fix: make cache service methods properly async
+[33m34a4004[m Fix TypeScript build errors for Railway deployment: - Fix MongoDB import path in server/app.ts - Add null checks and proper type casting in expert controller - Fix async/await in cache service - Update build script with environment variables
+[33m3c2cf54[m Fix TypeScript compilation errors in server controllers and models
+[33m9e69d3a[m Fix Docker build issues with environment variables and API routes
+[33m218522b[m Update deployment configuration with improved error handling
+[33meebd79e[m Fix deployment configuration
+[33m1503eaf[m Fix: Auth system improvements and bug fixes
+[33m77a770f[m Remove environment variables from vercel.json - set them in Vercel dashboard instead
+[33m444c731[m Fix Vercel deployment configuration
+[33m2cafba4[m Fix search functionality and resolve critical errors
+[33mf842116[m fix: improve text visibility in user management role and status badges
+[33maa55212[m Deploy: NeuroNova web app ready for hosting - working frontend and backend
+[33m21c003f[m Ready for deployment
+[33m43ed927[m Initial commit from Create Next App

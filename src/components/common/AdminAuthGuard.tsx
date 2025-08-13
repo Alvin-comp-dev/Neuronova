@@ -17,6 +17,8 @@ export default function AdminAuthGuard({ children }: AdminAuthGuardProps) {
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
+    console.log('🔍 Auth Debug:', { user, isAuthenticated, isInitialized, isLoading });
+    
     // Initialize auth if not already done
     if (!isInitialized) {
       dispatch(initializeAuth());

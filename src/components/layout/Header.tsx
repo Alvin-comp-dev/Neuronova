@@ -79,15 +79,6 @@ export default function Header() {
     console.log('Document classes after toggle:', html.className);
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
-    } else {
-      router.push('/search');
-    }
-  };
-
   const navigation = [
     { name: 'Home', href: '/' },
     { name: 'Research Feed', href: '/research' },
@@ -277,17 +268,12 @@ export default function Header() {
 
           {/* Mobile Search */}
           <div className="md:hidden pb-4">
-<<<<<<< HEAD
             <form onSubmit={handleSearch} className="relative">
-=======
-            <form onSubmit={handleSearch} className="relative w-full">
->>>>>>> 03806d4b54e00b624b51d1ea58aeb0b489a4de23
               <MagnifyingGlassIcon className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-<<<<<<< HEAD
                 onKeyDown={handleSearchKeyDown}
                 placeholder="Search research..."
                 className="w-full pl-10 pr-12 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-slate-400 transition-all duration-200"
@@ -298,16 +284,6 @@ export default function Header() {
                 title="Search"
               >
                 <MagnifyingGlassIcon className="w-4 h-4" />
-=======
-                placeholder="Search research..."
-                className="w-full pl-10 pr-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-white placeholder-slate-400"
-              />
-              <button
-                type="submit"
-                className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-600"
-              >
-                <MagnifyingGlassIcon className="h-5 w-5" />
->>>>>>> 03806d4b54e00b624b51d1ea58aeb0b489a4de23
               </button>
             </form>
           </div>

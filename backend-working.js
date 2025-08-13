@@ -187,18 +187,6 @@ const server = http.createServer((req, res) => {
       }
     }));
     
-  } else if (pathname === '/api/research/stats') {
-    res.writeHead(200);
-    res.end(JSON.stringify({
-      success: true,
-      data: {
-        totalArticles: mockResearch.length,
-        publishedArticles: mockResearch.filter(r => r.status === 'published').length,
-        categoriesCount: [...new Set(mockResearch.map(r => r.category))].length,
-        recentArticles: mockResearch.filter(r => new Date(r.publicationDate) > new Date(Date.now() - 30*24*60*60*1000)).length
-      }
-    }));
-    
   } else if (pathname.startsWith('/api/research/') && pathname !== '/api/research/stats') {
     const id = pathname.split('/')[3];
     const research = mockResearch.find(r => r._id === id);
@@ -218,40 +206,19 @@ const server = http.createServer((req, res) => {
       data: research
     }));
     
-  } else if (pathname === '/api/research/search') {
-    const { q: searchQuery, categories, limit = 10, page = 1 } = query;
-    let results = mockResearch;
-    
-    if (searchQuery) {
-      const searchTerm = searchQuery.toLowerCase();
-      results = mockResearch.filter(r => 
-        r.title.toLowerCase().includes(searchTerm) ||
-        r.abstract.toLowerCase().includes(searchTerm) ||
-        r.authors.some(author => author.toLowerCase().includes(searchTerm)) ||
-        r.keywords.some(keyword => keyword.toLowerCase().includes(searchTerm))
-      );
-    }
-    
-    if (categories) {
-      const categoryArray = categories.split(',');
-      results = results.filter(r => categoryArray.includes(r.category));
-    }
-    
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + parseInt(limit);
-    const paginatedResults = results.slice(startIndex, endIndex);
-    
+  } else if (pathname === '/api/research/stats') {
     res.writeHead(200);
     res.end(JSON.stringify({
       success: true,
-      data: paginatedResults,
-      query: searchQuery,
-      pagination: {
-        currentPage: parseInt(page),
-        totalPages: Math.ceil(results.length / limit),
-        totalResults: results.length,
-        hasNextPage: endIndex < results.length,
-        hasPrevPage: page > 1
+      data: {
+        totalPapers: mockResearch.length,
+        totalCitations: mockResearch.reduce((sum, r) => sum + r.citationCount, 0),
+        averageImpactScore: mockResearch.reduce((sum, r) => sum + r.impactScore, 0) / mockResearch.length,
+        categoriesCount: {
+          neurotech: mockResearch.filter(r => r.category === 'neurotech').length,
+          'gene-therapy': mockResearch.filter(r => r.category === 'gene-therapy').length,
+          'ai-healthcare': mockResearch.filter(r => r.category === 'ai-healthcare').length
+        }
       }
     }));
     

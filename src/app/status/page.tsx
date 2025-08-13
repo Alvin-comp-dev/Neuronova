@@ -113,15 +113,15 @@ export default function StatusPage() {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-slate-300">Uptime:</span>
-                  <span className="text-green-400">{formatUptime(status.system.uptime)}</span>
+                  <span className="text-green-400">{formatUptime(status.system?.uptime || 0)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-300">Platform:</span>
-                  <span>{status.system.platform}</span>
+                  <span>{status.system?.platform || 'Unknown'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-300">Version:</span>
-                  <span>{status.system.version}</span>
+                  <span>{status.system?.version || 'Unknown'}</span>
                 </div>
               </div>
             </div>
@@ -135,15 +135,15 @@ export default function StatusPage() {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-slate-300">Heap Used:</span>
-                  <span className="text-blue-400">{formatBytes(status.system.memory.heapUsed)}</span>
+                  <span className="text-blue-400">{formatBytes(status.system?.memory?.heapUsed || 0)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-300">Heap Total:</span>
-                  <span>{formatBytes(status.system.memory.heapTotal)}</span>
+                  <span>{formatBytes(status.system?.memory?.heapTotal || 0)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-300">RSS:</span>
-                  <span>{formatBytes(status.system.memory.rss)}</span>
+                  <span>{formatBytes(status.system?.memory?.rss || 0)}</span>
                 </div>
               </div>
             </div>
@@ -157,15 +157,15 @@ export default function StatusPage() {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-slate-300">Hits:</span>
-                  <span className="text-green-400">{status.cache.hits.toLocaleString()}</span>
+                  <span className="text-green-400">{(status.cache?.hits || 0).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-300">Misses:</span>
-                  <span className="text-red-400">{status.cache.misses.toLocaleString()}</span>
+                  <span className="text-red-400">{(status.cache?.misses || 0).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-300">Size:</span>
-                  <span>{status.cache.size.toLocaleString()}</span>
+                  <span>{(status.cache?.size || 0).toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -179,11 +179,11 @@ export default function StatusPage() {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-slate-300">Total:</span>
-                  <span>{status.rateLimits.total.toLocaleString()}</span>
+                  <span>{(status.rateLimits?.total || 0).toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-300">Active:</span>
-                  <span className="text-yellow-400">{status.rateLimits.active.toLocaleString()}</span>
+                  <span className="text-yellow-400">{(status.rateLimits?.active || 0).toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -195,7 +195,7 @@ export default function StatusPage() {
                 <h3 className="text-lg font-semibold">Last Updated</h3>
               </div>
               <p className="text-slate-300">
-                {new Date(status.system.timestamp).toLocaleString()}
+                {status.system?.timestamp ? new Date(status.system.timestamp).toLocaleString() : 'Unknown'}
               </p>
             </div>
           </div>

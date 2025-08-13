@@ -333,6 +333,23 @@ const SearchPage = () => {
                     </span>
                   )}
                 </p>
+                {/* Enhanced: Show source breakdown */}
+                {searchResults.length > 0 && (
+                  <div className="flex items-center gap-4 mt-2 text-sm text-slate-400">
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      <span>{searchResults.filter(r => r.isLocal !== false).length} local</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span>{searchResults.filter(r => r.isLocal === false).length} external</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                      <span>{[...new Set(searchResults.filter(r => r.source?.name).map(r => r.source!.name))].length} sources</span>
+                    </div>
+                  </div>
+                )}
               </div>
               
               <div className="flex items-center gap-3">
@@ -369,6 +386,7 @@ const SearchPage = () => {
           {isLoading && (
             <div className="flex justify-center items-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+              <span className="ml-3 text-slate-400">Searching worldwide databases...</span>
             </div>
           )}
 
@@ -393,6 +411,11 @@ const SearchPage = () => {
                         {result.isLocal === false && (
                           <span className="px-2 py-1 bg-green-500/20 text-green-300 text-xs rounded-full">
                             External Source
+                          </span>
+                        )}
+                        {result.source && (
+                          <span className="px-2 py-1 bg-purple-500/20 text-purple-300 text-xs rounded-full">
+                            {result.source.name}
                           </span>
                         )}
                       </div>
@@ -437,7 +460,7 @@ const SearchPage = () => {
                     </div>
                   </div>
 
-                  {/* Action Buttons */}
+                  {/* Enhanced: Better action buttons with external source info */}
                   <div className="flex items-center gap-2">
                     <button 
                       onClick={() => window.open(`/research/${result._id}`, '_blank')}
@@ -448,9 +471,20 @@ const SearchPage = () => {
                     {result.externalUrl && (
                       <button 
                         onClick={() => window.open(result.externalUrl, '_blank')}
+                        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition-colors flex items-center gap-1"
+                      >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                        External Link
+                      </button>
+                    )}
+                    {result.doi && (
+                      <button 
+                        onClick={() => window.open(`https://doi.org/${result.doi}`, '_blank')}
                         className="bg-slate-600 hover:bg-slate-500 text-white px-4 py-2 rounded-lg text-sm transition-colors"
                       >
-                        External Link
+                        DOI
                       </button>
                     )}
                   </div>

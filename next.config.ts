@@ -1,36 +1,27 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Basic configuration for Vercel deployment
-  eslint: {
-    ignoreDuringBuilds: true,
+  reactStrictMode: true,
+  poweredByHeader: false,
+  experimental: {
+    optimizeCss: true,
+    optimizePackageImports: ['lucide-react']
   },
-  
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  
-  // Simple image configuration
   images: {
-    domains: [
-      'images.unsplash.com',
-      'via.placeholder.com',
-      'i.pravatar.cc',
-      'randomuser.me',
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'utfs.io',
+        port: '',
+        pathname: '/**',
+      },
     ],
-  },
-  
-  // Basic webpack config
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
-      };
-    }
-    return config;
   },
 };
 

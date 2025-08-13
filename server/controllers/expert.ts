@@ -333,7 +333,7 @@ export const createOrUpdateProfile = async (req: AuthRequest, res: Response, nex
       expert = await Expert.create(profileData);
     }
 
-    await expert.populate('user', 'name email avatar');
+    await expert?.populate('user', 'name email avatar');
 
     res.status(200).json({
       success: true,
@@ -412,7 +412,7 @@ export const followExpert = async (req: AuthRequest, res: Response, next: NextFu
       return;
     }
 
-    const userId = new Types.ObjectId(req.user._id);
+    const userId = new Types.ObjectId(req.user?.id || req.user?._id);
     const expertId = new Types.ObjectId(req.params.id);
 
     const expertToFollow = await Expert.findById(expertId);

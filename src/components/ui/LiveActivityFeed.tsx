@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useAppSelector } from '@/lib/store/hooks';
-import socketManager from '@/lib/socket';
 import {
   SparklesIcon,
   ChatBubbleBottomCenterIcon,
@@ -91,50 +90,25 @@ export default function LiveActivityFeed({
     // Initial fetch of activities
     fetchActivities();
 
-    // Set up WebSocket connection
-    const socket = socketManager.connect(user?._id);
-
-    // Connection status handlers
-    socket.on('connect', () => {
-      console.log('🔌 Connected to activity feed');
-      setIsConnected(true);
-    });
-
-    socket.on('disconnect', () => {
-      console.log('🔌 Disconnected from activity feed');
-      setIsConnected(false);
-    });
-
-    // Activity event handlers
-    socket.on('new_activity', (newActivity: ActivityItem) => {
-      console.log('📬 New activity received:', newActivity);
-      setActivities(prev => {
-        // Avoid duplicates
-        if (prev.some(activity => activity._id === newActivity._id)) {
-          return prev;
-        }
-        return [{ ...newActivity, isLive: true }, ...prev].slice(0, limit);
-      });
-      setNewActivityCount(prev => prev + 1);
-      setLastUpdate(new Date());
-    });
-
-    socket.on('activity_update', (updatedActivity: ActivityItem) => {
-      console.log('🔄 Activity update received:', updatedActivity);
-      setActivities(prev => 
-        prev.map(activity => 
-          activity._id === updatedActivity._id ? { ...updatedActivity, isLive: true } : activity
-        )
-      );
-    });
+    // WebSocket temporarily disabled to prevent XHR poll errors
+    console.log('🚫 WebSocket disabled for activity feed - preventing connection errors');
+    
+    // Set up polling for activity updates instead of WebSocket
+    let interval: NodeJS.Timeout | null = null;
+    
+    if (autoRefresh) {
+      interval = setInterval(() => {
+        fetchActivities();
+      }, 30000); // Refresh every 30 seconds
+    }
 
     // Cleanup on unmount
     return () => {
-      socket.off('new_activity');
-      socket.off('activity_update');
-      socketManager.disconnect();
+      if (interval) {
+        clearInterval(interval);
+      }
     };
-  }, [user?._id, limit]);
+  }, [user?._id, limit, autoRefresh]);
 
   const fetchActivities = async () => {
     setLoading(true);

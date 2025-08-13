@@ -37,8 +37,25 @@ export default function LoginPage() {
     }
 
     try {
-      await dispatch(login(formData)).unwrap();
-      router.push('/research');
+      const result = await dispatch(login(formData)).unwrap();
+      
+      // Check for redirect parameter in URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirectTo = urlParams.get('redirect');
+      
+      // If user is admin and trying to access admin, redirect there
+      if (result.user?.role === 'admin' && redirectTo === '/admin') {
+        router.push('/admin');
+      } else if (redirectTo) {
+        router.push(redirectTo);
+      } else {
+        // Default redirect based on user role
+        if (result.user?.role === 'admin') {
+          router.push('/admin');
+        } else {
+          router.push('/research');
+        }
+      }
     } catch (error) {
       // Error is handled by Redux
     }

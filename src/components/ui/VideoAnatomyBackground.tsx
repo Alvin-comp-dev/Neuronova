@@ -9,7 +9,7 @@ interface VideoAnatomyBackgroundProps {
 }
 
 export default function VideoAnatomyBackground({ 
-  videoSrc = '/videos/anatomy-animation.mp4', 
+  videoSrc = '/videos/Anatomy-Animation.mp4', 
   opacity = 0.3,
   className = ''
 }: VideoAnatomyBackgroundProps) {

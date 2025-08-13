@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectMongoose } from '@/lib/mongodb';
 import { ResearchModel } from '@/lib/models/Research';
 import { ExternalApiService } from '../../../../server/services/externalApiService';
+import { externalResearchService } from '@/lib/services/externalResearchService';
 
 // Add comprehensive mock data for all categories
 const mockResearchData = [
@@ -426,13 +427,15 @@ export async function GET(request: NextRequest) {
   const categories = searchParams.get('categories')?.split(',') || [];
   const sortBy = searchParams.get('sortBy') || 'relevance';
   const limit = parseInt(searchParams.get('limit') || '20');
+  const includeExternal = searchParams.get('includeExternal') !== 'false'; // Default to true
 
   console.log('🔍 Search API called with parameters:', {
     query,
     type,
     categories,
     sortBy,
-    limit
+    limit,
+    includeExternal
   });
 
   try {
@@ -440,6 +443,7 @@ export async function GET(request: NextRequest) {
     await connectMongoose();
     
     let results = [];
+    let externalResults = [];
     
     // Try to get results from database first
     try {
@@ -543,6 +547,102 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // 🌍 ENHANCED: Search external sources if query exists and includeExternal is true
+    if (query && includeExternal && results.length < limit) {
+      console.log('🌍 Searching external sources to supplement results...');
+      
+      try {
+        // Calculate how many more results we need
+        const remainingLimit = limit - results.length;
+        const externalLimit = Math.min(remainingLimit, 30); // Cap external results
+        
+        // Search external sources in parallel
+        const [externalResearchResults, aggregatedResults] = await Promise.allSettled([
+          externalResearchService.searchResearch(query, externalLimit),
+          ExternalApiService.aggregatedSearch(query, externalLimit)
+        ]);
+        
+        // Process external research service results
+        if (externalResearchResults.status === 'fulfilled' && externalResearchResults.value) {
+          const extResults = externalResearchResults.value.map(article => ({
+            _id: `ext_${article.id}`,
+            title: article.title,
+            abstract: article.abstract,
+            authors: article.authors.map(author => ({ name: author })),
+            institution: '',
+            journal: article.source,
+            publicationDate: article.publicationDate,
+            categories: article.tags,
+            tags: article.tags,
+            doi: article.doi,
+            externalUrl: article.url,
+            viewCount: 0,
+            citationCount: article.citations || 0,
+            likeCount: 0,
+            bookmarkCount: 0,
+            impactScore: 0,
+            readabilityScore: 0,
+            noveltyScore: 0,
+            isLocal: false,
+            isExternal: true,
+            source: {
+              name: article.source,
+              url: article.url,
+              type: article.type
+            }
+          }));
+          
+          externalResults.push(...extResults);
+          console.log(`✅ External research service: ${extResults.length} results`);
+        }
+        
+        // Process aggregated API results
+        if (aggregatedResults.status === 'fulfilled' && aggregatedResults.value) {
+          const aggResults = aggregatedResults.value.map(article => ({
+            _id: `agg_${article.title.replace(/\s+/g, '_').substring(0, 20)}`,
+            title: article.title,
+            abstract: article.abstract,
+            authors: article.authors,
+            institution: '',
+            journal: article.source.name,
+            publicationDate: article.publicationDate,
+            categories: article.categories,
+            tags: article.tags,
+            doi: article.doi,
+            externalUrl: article.source.url,
+            viewCount: article.viewCount || 0,
+            citationCount: article.citationCount || 0,
+            likeCount: 0,
+            bookmarkCount: article.bookmarkCount || 0,
+            impactScore: article.metrics?.impactScore || 0,
+            readabilityScore: article.metrics?.readabilityScore || 0,
+            noveltyScore: article.metrics?.noveltyScore || 0,
+            isLocal: false,
+            isExternal: true,
+            source: article.source
+          }));
+          
+          externalResults.push(...aggResults);
+          console.log(`✅ Aggregated API: ${aggResults.length} results`);
+        }
+        
+        // Remove duplicates based on title similarity
+        const uniqueExternalResults = externalResults.filter((external, index, self) => 
+          index === self.findIndex(e => 
+            e.title.toLowerCase().trim() === external.title.toLowerCase().trim()
+          )
+        );
+        
+        console.log(`🔧 After deduplication: ${uniqueExternalResults.length} unique external results`);
+        
+        // Add external results to main results
+        results = [...results, ...uniqueExternalResults];
+        
+      } catch (externalError) {
+        console.error('⚠️ External search failed:', externalError);
+      }
+    }
+
     // Apply sorting
     switch (sortBy) {
       case 'date':
@@ -554,15 +654,23 @@ export async function GET(request: NextRequest) {
       case 'views':
         results.sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0));
         break;
+      case 'relevance':
+        // Sort by relevance: local results first, then external results
+        results.sort((a, b) => {
+          if (a.isLocal && !b.isLocal) return -1;
+          if (!a.isLocal && b.isLocal) return 1;
+          return (b.citationCount || 0) - (a.citationCount || 0);
+        });
+        break;
       default:
-        // Keep relevance order (default order)
+        // Keep default order
         break;
     }
 
     // Limit results
     results = results.slice(0, limit);
 
-    console.log(`📊 Returning ${results.length} search results`);
+    console.log(`📊 Returning ${results.length} search results (${results.filter(r => r.isLocal).length} local, ${results.filter(r => r.isExternal).length} external)`);
 
     return NextResponse.json({
       success: true,
@@ -570,7 +678,12 @@ export async function GET(request: NextRequest) {
       total: results.length,
       query: query || '',
       categories: categories,
-      type
+      type,
+      meta: {
+        localResults: results.filter(r => r.isLocal).length,
+        externalResults: results.filter(r => r.isExternal).length,
+        totalSources: results.length > 0 ? [...new Set(results.map(r => r.source.name))].length : 0
+      }
     });
 
   } catch (error) {

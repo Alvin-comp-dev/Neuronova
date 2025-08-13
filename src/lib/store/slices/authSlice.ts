@@ -58,8 +58,24 @@ export const initializeAuth = createAsyncThunk(
         },
       });
       
+      // Transform backend user data to match frontend User interface
+      const userData = response.data.data;
+      const user: User = {
+        id: userData.id,
+        name: userData.name,
+        email: userData.email,
+        role: userData.role || 'user',
+        avatar: userData.avatar,
+        isVerified: userData.verified || false,
+        preferences: {
+          categories: userData.preferences?.categories || [],
+          emailNotifications: userData.preferences?.emailNotifications || true,
+          darkMode: userData.preferences?.darkMode || false,
+        }
+      };
+      
       return {
-        user: response.data.data,
+        user,
         token,
         isAuthenticated: true,
       };
@@ -87,7 +103,26 @@ export const login = createAsyncThunk(
         localStorage.setItem('token', response.data.token);
       }
       
-      return response.data;
+      // Transform backend user data to match frontend User interface
+      const userData = response.data.user;
+      const user: User = {
+        id: userData.id,
+        name: userData.name,
+        email: userData.email,
+        role: userData.role || 'user',
+        avatar: userData.avatar,
+        isVerified: userData.verified || false,
+        preferences: {
+          categories: userData.preferences?.categories || [],
+          emailNotifications: userData.preferences?.emailNotifications || true,
+          darkMode: userData.preferences?.darkMode || false,
+        }
+      };
+      
+      return {
+        ...response.data,
+        user
+      };
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.error || 'Login failed');
     }
@@ -109,7 +144,26 @@ export const register = createAsyncThunk(
         localStorage.setItem('token', response.data.token);
       }
       
-      return response.data;
+      // Transform backend user data to match frontend User interface
+      const userData = response.data.user;
+      const user: User = {
+        id: userData.id,
+        name: userData.name,
+        email: userData.email,
+        role: userData.role || 'user',
+        avatar: userData.avatar,
+        isVerified: userData.verified || false,
+        preferences: {
+          categories: userData.preferences?.categories || [],
+          emailNotifications: userData.preferences?.emailNotifications || true,
+          darkMode: userData.preferences?.darkMode || false,
+        }
+      };
+      
+      return {
+        ...response.data,
+        user
+      };
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.error || 'Registration failed');
     }
@@ -133,7 +187,26 @@ export const getCurrentUser = createAsyncThunk(
         },
       });
       
-      return response.data;
+      // Transform backend user data to match frontend User interface
+      const userData = response.data.data;
+      const user: User = {
+        id: userData.id,
+        name: userData.name,
+        email: userData.email,
+        role: userData.role || 'user',
+        avatar: userData.avatar,
+        isVerified: userData.verified || false,
+        preferences: {
+          categories: userData.preferences?.categories || [],
+          emailNotifications: userData.preferences?.emailNotifications || true,
+          darkMode: userData.preferences?.darkMode || false,
+        }
+      };
+      
+      return {
+        ...response.data,
+        data: user
+      };
     } catch (error: any) {
       return rejectWithValue(error.response?.data?.error || 'Failed to get user');
     }
